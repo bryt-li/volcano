@@ -21,10 +21,10 @@
 			<plugin>
 			  <groupId>org.apache.maven.plugins</groupId>
 			  <artifactId>maven-compiler-plugin</artifactId>
-			  <version>2.3</version>
+			  <version>3.6.1</version>
 			  <configuration>
-			    <source>1.8</source>
-			    <target>1.8</target>
+			    <source>1.7</source>
+			    <target>1.7</target>
 			  </configuration>
 			</plugin>
 			<plugin>
@@ -34,7 +34,7 @@
 				<configuration>
 					<!-- deployment configurations see:
 					http://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/usage.html -->
-					<url>http://localhost:9000/manager</url>
+					<url>http://localhost:9000/manager/text</url>
 					<server>localhost-tomcat7-server</server>
 
 					<!-- development local server configuration -->

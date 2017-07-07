@@ -20,10 +20,11 @@
 
 modify db.properties to use password in remote server.
 modify pom.xml version number      
-
+	
+	mvn tomcat7:undeploy
 	mvn tomcat7:deploy
 
-or manual deploy
+# Manual deploy
 
 visit /manager to stop and undeploy the app 
 	
