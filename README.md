@@ -17,8 +17,16 @@
 	mvn tomcat7:run
 	
 # Deploy
-      modify db.properties to use password in remote server.
-	mvn package
-	visit /manager to stop and undeploy the app 
+
+modify db.properties to use password in remote server.
+modify pom.xml version number      
+
+	mvn tomcat7:deploy
+
+or manual deploy
+
+visit /manager to stop and undeploy the app 
+	
 	scp target/backend.war root@huolihuoshan.com:/var/lib/tomcat7/webapps/
-	use /manager to start the app
+
+use /manager to start the app

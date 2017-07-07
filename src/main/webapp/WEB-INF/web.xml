@@ -1,4 +1,4 @@
-<web-app version="VERSION">
+<web-app>
 	<display-name>HLHS Backend Web Application</display-name>
 
 	<filter>
