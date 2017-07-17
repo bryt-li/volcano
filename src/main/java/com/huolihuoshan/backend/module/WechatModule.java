@@ -1,6 +1,5 @@
 package com.huolihuoshan.backend.module;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -12,6 +11,7 @@ import org.nutz.log.Log;
 import org.nutz.log.Logs;
 import org.nutz.mvc.annotation.At;
 import org.nutz.mvc.annotation.Fail;
+import org.nutz.mvc.annotation.GET;
 import org.nutz.mvc.annotation.Ok;
 import org.nutz.mvc.annotation.Param;
 import org.nutz.weixin.spi.WxLogin;
@@ -33,9 +33,9 @@ public class WechatModule extends BaseModule{
 	
 	////wecat/login?code=CODE&state=STATE
 	@At
-	public void login(@Param("..") String code, @Param("..") String state, 
-			HttpSession session, 
-			HttpServletResponse response) throws Exception{
+	@GET
+	public void login(@Param("code") String code, @Param("state") String state, 
+			HttpSession session, HttpServletResponse response) throws Exception{
 		LOG.debugf("wechat user login: code=%s; state=%s",code, state);
 
 		WxResp resp = wxLogin.access_token(code);
