@@ -15,15 +15,12 @@ public class User {
     
     @Name
     @Column
-    @ColDefine(width=256)
     private String openid;
     
 	@Column
-    @ColDefine(width=256)
     private String nickname;
     
     @Column
-    @ColDefine(width=256)
     private String name;
 
     @Column
