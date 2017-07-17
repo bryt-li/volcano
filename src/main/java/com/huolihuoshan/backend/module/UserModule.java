@@ -30,7 +30,7 @@ public class UserModule extends BaseModule {
 		if (user == null) {
 			return new NutMap().setv("ok", false).setv("err", "用户名和密码不匹配");
 		} else {
-			this.saveMe(user.getId());
+//			this.saveMe(user.getId());
 			return new NutMap().
 					setv("ok", true).
 					setv("data", new NutMap().

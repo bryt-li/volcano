@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.huolihuoshan</groupId>
-	<artifactId>backend</artifactId>
+	<artifactId>hlhs-backend</artifactId>
 	<packaging>war</packaging>
 	<version>0.1</version>
 
@@ -38,7 +38,7 @@
 					<server>localhost-tomcat7-server</server>
 
 					<!-- development local server configuration -->
-					<path>/${project.build.finalName}</path>
+					<path>/${project.artifactId}</path>
 					<port>9090</port>
 					<uriEncoding>UTF-8</uriEncoding>
 					<!-- Make sure NOT set reload true in production deploy. -->
@@ -83,7 +83,13 @@
 		<dependency>
 			<groupId>org.nutz</groupId>
 			<artifactId>nutz</artifactId>
-			<version>1.r.61</version>
+			<version>1.r.62-SNAPSHOT</version>
+		</dependency>
+		<!-- nutzwx in local repository-->
+		<dependency>
+		    <groupId>org.nutz</groupId>
+		    <artifactId>nutzwx</artifactId>
+		    <version>1.r.62-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>

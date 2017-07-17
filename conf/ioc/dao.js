@@ -1,5 +1,5 @@
 var ioc = {
-	conf : {
+	db : {
 		type : "org.nutz.ioc.impl.PropertiesProxy",
 		fields : {
 			paths : [ "custom/db.properties" ]
@@ -13,20 +13,20 @@ var ioc = {
 		},
 		fields : {
 			url : {
-				java : "$conf.get('db.url')"
+				java : "$db.get('db.url')"
 			},
 			username : {
-				java : "$conf.get('db.username')"
+				java : "$db.get('db.username')"
 			},
 			password : {
-				java : "$conf.get('db.password')"
+				java : "$db.get('db.password')"
 			},
 			testWhileIdle : true,
 			validationQuery : {
-				java : "$conf.get('db.validationQuery')"
+				java : "$db.get('db.validationQuery')"
 			},
 			maxActive : {
-				java : "$conf.get('db.maxActive')"
+				java : "$db.get('db.maxActive')"
 			},
 			filters : "mergeStat",
 			connectionProperties : "druid.stat.slowSqlMillis=2000"

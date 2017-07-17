@@ -10,13 +10,20 @@ import org.nutz.dao.QueryResult;
 import org.nutz.dao.pager.Pager;
 import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.lang.util.NutMap;
+import org.nutz.log.Log;
+import org.nutz.log.Logs;
 import org.nutz.mvc.Mvcs;
 import org.nutz.mvc.View;
 import org.nutz.mvc.view.HttpStatusView;
 import org.nutz.mvc.view.RawView;
 import org.nutz.mvc.view.ViewWrapper;
+import org.nutz.weixin.spi.WxResp;
+
+import com.huolihuoshan.backend.bean.User;
 
 public abstract class BaseModule {
+
+	private final Log LOG = Logs.getLog(this.getClass());
 
 	/** 注入与属性同名的一个ioc对象 */
 	@Inject
@@ -25,12 +32,43 @@ public abstract class BaseModule {
 	@Inject("java:$conf.get('website.urlbase')")
 	protected String urlbase;
 
-	protected void saveMe(int id) {
-		Mvcs.getHttpSession(true).setAttribute("me", id);
+	protected void saveMe(String openid, String nickname, 
+			String sex, String name, String headImageUrl, 
+			String country, String province, String city) throws Exception {
+		
+		boolean add_new = false;
+		User user = dao.fetch(User.class, openid);
+		if (user == null) {
+			user = new User();
+			add_new = true;
+		}
+
+		user.setOpenid(openid);
+		user.setNickname(nickname);
+		user.setSex(sex);
+		user.setName(name);
+		user.setHeadImageUrl(headImageUrl);
+		user.setCountry(country);
+		user.setProvince(province);
+		user.setCity(city);
+		
+		if(add_new){
+			user = dao.insert(user);
+			LOG.debug("Create a new user. nickname="+nickname);
+		}
+		else{
+			dao.update(user);
+			LOG.debug("Update an existed user. nickname="+nickname);
+		}
+		
+		Mvcs.getHttpSession(true).setAttribute("me", user);
 	}
 
-	protected Integer getMe() {
-		return (Integer) Mvcs.getHttpSession(true).getAttribute("me");
+	protected User getMe() {
+		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
+		if(attr==null)
+			return null;
+		return (User) attr;
 	}
 
 	protected String redirectToLoginPage() {

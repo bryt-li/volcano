@@ -1,6 +1,6 @@
 var ioc = {
 	// 读取配置文件
-	config : {
+	conf : {
 		type : "org.nutz.ioc.impl.PropertiesProxy",
 		fields : {
 			paths : [ "custom/misc.properties" ]
