@@ -1,5 +1,6 @@
 package com.huolihuoshan.backend.module;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -31,8 +32,10 @@ public class WechatModule extends BaseModule{
 	
 	////wecat/login?code=CODE&state=STATE
 	@At
-	public void login(String code, String state, HttpSession session, HttpServletResponse response) throws Exception{
-		LOG.debugf("wechat user login: code=%s; state=%s",code, state);
+	public void login(String code, String state, 
+			HttpSession session, 
+			HttpServletRequest request, HttpServletResponse response) throws Exception{
+		LOG.debugf("wechat user login: code=%s; state=%s; qs=%s",code, state,request.getQueryString());
 
 		WxResp resp = wxLogin.access_token(code);
 		if(resp.ok()){
