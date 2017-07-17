@@ -1,7 +1,5 @@
 package com.huolihuoshan.backend.module;
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
@@ -9,6 +7,8 @@ import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.json.Json;
 import org.nutz.lang.util.NutMap;
+import org.nutz.log.Log;
+import org.nutz.log.Logs;
 import org.nutz.mvc.annotation.At;
 import org.nutz.mvc.annotation.Fail;
 import org.nutz.mvc.annotation.Ok;
@@ -23,13 +23,17 @@ import com.huolihuoshan.backend.bean.User;
 @Fail("http:500")
 public class WechatModule extends BaseModule{
     
+	private final Log LOG = Logs.getLog(this.getClass());
+
+	
 	@Inject("java:$wxLogin.configure($conf,null)")
 	protected WxLogin wxLogin;
 	
 	////wecat/login?code=CODE&state=STATE
 	@At
 	public void login(String code, String state, HttpSession session, HttpServletResponse response) throws Exception{
-		
+		LOG.debugf("wechat user login: code=%s; state=%s",code, state);
+
 		WxResp resp = wxLogin.access_token(code);
 		if(resp.ok()){
 			String openid = resp.getString("openid");
@@ -58,7 +62,11 @@ public class WechatModule extends BaseModule{
 				saveMe(openid, nickname, 
 						sex, name, headImageUrl, 
 						country, province, city);
+			}else{
+				LOG.debugf("userinfo failed: [%d]%s",resp.errcode(), resp.errmsg());
 			}
+		}else{
+			LOG.debugf("access_token failed: [%d]%s",resp.errcode(), resp.errmsg());
 		}
 
 		//重定向后会带上state参数，开发者可以填写a-zA-Z0-9的参数值，最多128字节，我们用777表示路径中的/
