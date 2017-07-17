@@ -13,6 +13,7 @@ import org.nutz.log.Logs;
 import org.nutz.mvc.annotation.At;
 import org.nutz.mvc.annotation.Fail;
 import org.nutz.mvc.annotation.Ok;
+import org.nutz.mvc.annotation.Param;
 import org.nutz.weixin.spi.WxLogin;
 import org.nutz.weixin.spi.WxResp;
 
@@ -32,10 +33,10 @@ public class WechatModule extends BaseModule{
 	
 	////wecat/login?code=CODE&state=STATE
 	@At
-	public void login(String code, String state, 
+	public void login(@Param("..") String code, @Param("..") String state, 
 			HttpSession session, 
-			HttpServletRequest request, HttpServletResponse response) throws Exception{
-		LOG.debugf("wechat user login: code=%s; state=%s; qs=%s",code, state,request.getQueryString());
+			HttpServletResponse response) throws Exception{
+		LOG.debugf("wechat user login: code=%s; state=%s; qs=%s",code, state);
 
 		WxResp resp = wxLogin.access_token(code);
 		if(resp.ok()){
