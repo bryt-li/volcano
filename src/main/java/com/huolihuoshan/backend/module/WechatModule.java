@@ -60,10 +60,12 @@ public class WechatModule extends BaseModule{
 						country, province, city);
 			}
 		}
-		
-		if(state==null||state.isEmpty())
-			state = "/";
-		response.sendRedirect(state);
+
+		//重定向后会带上state参数，开发者可以填写a-zA-Z0-9的参数值，最多128字节，我们用777表示路径中的/
+		String redirect = "/";
+		if(state!=null&&!state.isEmpty())
+			redirect = state.replace("777", "/");
+		response.sendRedirect(redirect);
 	}
 	
 	@At
