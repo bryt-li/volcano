@@ -77,7 +77,7 @@ public class WechatModule extends BaseModule{
 		String redirect = "/";
 		if(state!=null&&!state.isEmpty())
 			redirect = state.replace("777", "/");
-		response.sendRedirect(redirect);
+		response.sendRedirect("/wechat/login/succeed#"+redirect);
 	}
 	
 	@At
