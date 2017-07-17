@@ -36,7 +36,7 @@ public class WechatModule extends BaseModule{
 	public void login(@Param("..") String code, @Param("..") String state, 
 			HttpSession session, 
 			HttpServletResponse response) throws Exception{
-		LOG.debugf("wechat user login: code=%s; state=%s; qs=%s",code, state);
+		LOG.debugf("wechat user login: code=%s; state=%s",code, state);
 
 		WxResp resp = wxLogin.access_token(code);
 		if(resp.ok()){
