@@ -1,7 +1,9 @@
 package com.huolihuoshan.backend.bean;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import org.nutz.dao.entity.annotation.ColDefine;
-import org.nutz.dao.entity.annotation.ColType;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Id;
 import org.nutz.dao.entity.annotation.Name;
@@ -109,5 +111,13 @@ public class User {
 
 	public void setSex(String sex) {
 		this.sex = sex;
+	}
+	
+	public String toQS() throws Exception{
+		return String.format("id=%s&openid=%s&name=%s&nickname=%s&sex=%s&country=%s&province=%s&city=%s&headImageUrl=%s",
+				this.id,this.openid,
+				this.name,this.nickname,this.sex,
+				this.country,this.province,this.city,
+				this.headImageUrl);
 	}
 }

@@ -1,6 +1,8 @@
 package com.huolihuoshan.backend;
 
 import org.nutz.ioc.loader.annotation.IocBean;
+import org.nutz.json.Json;
+import org.nutz.lang.util.NutMap;
 import org.nutz.log.Log;
 import org.nutz.log.Logs;
 import org.nutz.mvc.annotation.At;
@@ -9,9 +11,11 @@ import org.nutz.mvc.annotation.Fail;
 import org.nutz.mvc.annotation.IocBy;
 import org.nutz.mvc.annotation.Modules;
 import org.nutz.mvc.annotation.Ok;
-import org.nutz.mvc.annotation.POST;
 import org.nutz.mvc.annotation.SetupBy;
 import org.nutz.mvc.ioc.provider.ComboIocProvider;
+
+import com.huolihuoshan.backend.bean.User;
+import com.huolihuoshan.backend.module.BaseModule;
 
 /*
 在整个应用启动或者关闭时，你想做一些额外的处理工作，你可以实现一个 org.nutz.mvc.Setup 接口，并将其配置在主模块上
@@ -35,13 +39,10 @@ args = { "*js", "ioc/", "*anno", "com.huolihuoshan.backend", "*weixin", "*tx" })
 @At("/")
 @Ok("json")
 @Fail("http:500")
-public class EntryModule {
-
-	private final Log LOG = Logs.getLog(this.getClass());
-
+public class EntryModule extends BaseModule{
 	@At
 	public String foo(String args) {
 		return "hello"+args;
 	}
-	
+
 }

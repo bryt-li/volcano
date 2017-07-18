@@ -17,13 +17,12 @@ import org.nutz.mvc.View;
 import org.nutz.mvc.view.HttpStatusView;
 import org.nutz.mvc.view.RawView;
 import org.nutz.mvc.view.ViewWrapper;
-import org.nutz.weixin.spi.WxResp;
 
 import com.huolihuoshan.backend.bean.User;
 
 public abstract class BaseModule {
 
-	private final Log LOG = Logs.getLog(this.getClass());
+	protected final Log LOG = Logs.getLog(this.getClass());
 
 	/** 注入与属性同名的一个ioc对象 */
 	@Inject
@@ -32,45 +31,24 @@ public abstract class BaseModule {
 	@Inject("java:$conf.get('website.urlbase')")
 	protected String urlbase;
 
-	protected void saveMe(String openid, String nickname, 
-			String sex, String name, String headImageUrl, 
-			String country, String province, String city) throws Exception {
-		
-		boolean add_new = false;
-		User user = dao.fetch(User.class, openid);
-		if (user == null) {
-			user = new User();
-			add_new = true;
-		}
+	@Inject("java:$conf.get('frontend_url_base')")
+	protected String frontendUrlBase;
 
-		user.setOpenid(openid);
-		user.setNickname(nickname);
-		user.setSex(sex);
-		user.setName(name);
-		user.setHeadImageUrl(headImageUrl);
-		user.setCountry(country);
-		user.setProvince(province);
-		user.setCity(city);
-		
-		if(add_new){
-			user = dao.insert(user);
-			LOG.debug("Create a new user. nickname="+nickname);
-		}
-		else{
-			dao.update(user);
-			LOG.debug("Update an existed user. nickname="+nickname);
-		}
-		
-		Mvcs.getHttpSession(true).setAttribute("me", user);
+	protected void redirect_to_caller(String url, User me) throws Exception {
+		String qs = me.toQS();
+		String[] parts = url.split("#");
+		url = parts[0];
+		String hash = "";
+		if (parts.length > 1)
+			hash = "#" + parts[1];
+
+		Mvcs.getResp().sendRedirect(String.format("%s%s?%s%s", frontendUrlBase, url, qs, hash));
 	}
 
-	protected User getMe() {
-		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
-		if(attr==null)
-			return null;
-		return (User) attr;
-	}
-
+	protected void redirect_to_referer(String url) throws Exception {
+		Mvcs.getResp().sendRedirect(String.format("%s%s", frontendUrlBase, url));
+	}	
+	
 	protected String redirectToLoginPage() {
 		Mvcs.getHttpSession(true).setAttribute("savedUrl", Mvcs.getReq().getRequestURI());
 		return "redirect:/login";
