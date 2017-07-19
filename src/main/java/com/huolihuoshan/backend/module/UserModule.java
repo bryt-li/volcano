@@ -133,10 +133,10 @@ public class UserModule extends BaseModule{
 	public Object queryMe() throws Exception{
 		User me = this.getMe();
 		if(me==null){
-			this.saveMe("openid","lixin",
+/*			this.saveMe("openid","lixin",
 					"1","bryt","http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",
 					"china","hunan","changsha");
-			
+*/			
 			return new NutMap().
 					setv("ok", false).
 					setv("payload", "{\"errmsg\":\"no user signed in.\"}");
