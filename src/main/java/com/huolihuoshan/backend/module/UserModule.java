@@ -29,86 +29,35 @@ import com.huolihuoshan.backend.bean.User;
 @At("/user")
 @Ok("json")
 @Fail("http:500")
-public class UserModule extends BaseModule {
-
+public class UserModule extends BaseModule{
 
 	@Inject("java:$wxLogin.configure($conf,null)")
 	protected WxLogin wxLogin;
 
-
-	protected User saveMe(String openid, String nickname, 
-			String sex, String name, String headImageUrl, 
-			String country, String province, String city) throws Exception {
-		
-		boolean add_new = false;
-		User user = dao.fetch(User.class, openid);
-		if (user == null) {
-			user = new User();
-			add_new = true;
-		}
-
-		user.setOpenid(openid);
-		user.setNickname(nickname);
-		user.setSex(sex);
-		user.setName(name);
-		user.setHeadImageUrl(headImageUrl);
-		user.setCountry(country);
-		user.setProvince(province);
-		user.setCity(city);
-		
-		if(add_new){
-			user = dao.insert(user);
-			LOG.debug("Create a new user. nickname="+nickname);
-		}
-		else{
-			dao.update(user);
-			LOG.debug("Update an existed user. nickname="+nickname);
-		}
-		
-		Mvcs.getHttpSession(true).setAttribute("me", user);
-		return user;
+	private static String HOST_FRONTEND = "";
+	protected void redirect_to_referer(String url) throws Exception {
+		Mvcs.getResp().sendRedirect(String.format("%s%s", HOST_FRONTEND, url));
+	}
+	protected void redirect_to_model_user(User me, String caller) throws Exception {
+		String qs = (me==null ? "clear=true" : me.toQS());
+		Mvcs.getResp().sendRedirect(String.format("%s/model/user?%s&redirect=%s", HOST_FRONTEND, qs, caller));
 	}
 
-	protected User getMe() {
-		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
-		if(attr==null)
-			return null;
-		return (User) attr;
-	}
-	
-	@At
-	public Object queryMe() throws Exception{
-		User me = this.getMe();
-		if(me==null){
-			/*this.saveMe("openid","lixin",
-					"1","bryt","http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",
-					"china","hunan","changsha");
-			*/
-			return new NutMap().
-					setv("ok", false).
-					setv("payload", "{\"errmsg\":\"no user signed in.\"}");
-		}
-		else{
-			return new NutMap().
-				setv("ok", true).
-				setv("payload", Json.toJson(me));
-		}
-	}
-	
-	//// wecat/login?caller=url&referer=url
+	//// wecat/login?host=host&caller=url&referer=url
 	@At
 	@GET
-	public void login(@Param("caller") String caller, @Param("referer") String referer, HttpServletRequest request,
+	public void login(@Param("host") String host,
+			@Param("caller") String caller, @Param("referer") String referer, 
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
-
-		LOG.debugf("enter /wechat/login: caller=%s; referer=%s", caller, referer);
+		HOST_FRONTEND = host;
+		LOG.debugf("enter /wechat/login: host=%s; caller=%s; referer=%s", host, caller, referer);
 
 		User me = this.getMe();
 		if (me != null) {
 			// redirect back with qs:user
 			LOG.debug("user already signed in, redirect back to caller with me");
-			redirect_to_caller(caller, me);
-			return;
+			redirect_to_model_user(me,caller);
 		} else {
 			// redirect to weixin login
 			String state = String.format("%s111%s", caller.replace("/", "777").replace("#", "888"),
@@ -116,11 +65,11 @@ public class UserModule extends BaseModule {
 			String wx_login_url = wxLogin.authorize("/user/wxlogin", "snsapi_userinfo", state);
 			LOG.debugf("no user signed in, redirect to wechat: wx_login_url=%s", wx_login_url);
 			response.sendRedirect(wx_login_url);
-			return;
 		}
 	}
 
-	//// wecat/wxlogin?code=CODE&state=STATE
+	//// this is called by wechat open platform
+	//// wechat/wxlogin?code=CODE&state=STATE
 	@At
 	@GET
 	public void wxlogin(@Param("code") String code, @Param("state") String state, HttpServletRequest request,
@@ -155,7 +104,7 @@ public class UserModule extends BaseModule {
 
 				// redirect back with qs:user
 				LOG.debugf("user already signed in, redirect back to caller with me;");
-				redirect_to_caller(caller, me);
+				redirect_to_model_user(me, caller);
 				return;
 			} else {
 				LOG.debugf("userinfo failed: openid=%s; token=%s; err=[%d]%s", openid, token, resp.errcode(),
@@ -170,6 +119,74 @@ public class UserModule extends BaseModule {
 		}
 	}
 	
+	@At
+	@GET
+	public void logout(@Param("redirect") String redirect, HttpSession session) throws Exception {
+		LOG.debugf("User logout. redirect to %s",redirect);
+		session.invalidate();
+		if(redirect==null)
+			redirect="/";
+		redirect_to_model_user(null,redirect);
+	}
+	
+	@At
+	public Object queryMe() throws Exception{
+		User me = this.getMe();
+		if(me==null){
+			this.saveMe("openid","lixin",
+					"1","bryt","http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",
+					"china","hunan","changsha");
+			
+			return new NutMap().
+					setv("ok", false).
+					setv("payload", "{\"errmsg\":\"no user signed in.\"}");
+		}
+		else{
+			return new NutMap().
+				setv("ok", true).
+				setv("payload", Json.toJson(me));
+		}
+	}
+	
+	private User saveMe(String openid, String nickname, 
+			String sex, String name, String headImageUrl, 
+			String country, String province, String city) throws Exception {
+		
+		boolean add_new = false;
+		User user = dao.fetch(User.class, openid);
+		if (user == null) {
+			user = new User();
+			add_new = true;
+		}
+
+		user.setOpenid(openid);
+		user.setNickname(nickname);
+		user.setSex(sex);
+		user.setName(name);
+		user.setHeadImageUrl(headImageUrl);
+		user.setCountry(country);
+		user.setProvince(province);
+		user.setCity(city);
+		
+		if(add_new){
+			user = dao.insert(user);
+			LOG.debug("Create a new user. nickname="+nickname);
+		}
+		else{
+			dao.update(user);
+			LOG.debug("Update an existed user. nickname="+nickname);
+		}
+		
+		Mvcs.getHttpSession(true).setAttribute("me", user);
+		return user;
+	}
+
+	private User getMe() {
+		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
+		if(attr==null)
+			return null;
+		return (User) attr;
+	}
 	
 	/*
 	//the following is for pure html/js frontend request
@@ -191,15 +208,7 @@ public class UserModule extends BaseModule {
 		}
 	}
 	 */
-	
-	@At
-	@GET
-	public void logout(HttpSession session) throws Exception {
-		LOG.debug("User logout.");
-		session.invalidate();
-		redirect_to_referer("/?logout=true");
-	}
-	
+		
 	/*
 	//the following is for traditional JSP request
 	//I disabled them as our frontend is a react-redux base app.

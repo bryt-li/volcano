@@ -28,31 +28,6 @@ public abstract class BaseModule {
 	@Inject
 	protected Dao dao;
 
-	@Inject("java:$conf.get('website.urlbase')")
-	protected String urlbase;
-
-	@Inject("java:$conf.get('frontend_url_base')")
-	protected String frontendUrlBase;
-
-	protected void redirect_to_caller(String url, User me) throws Exception {
-		String qs = me.toQS();
-		String[] parts = url.split("#");
-		url = parts[0];
-		String hash = "";
-		if (parts.length > 1)
-			hash = "#" + parts[1];
-
-		Mvcs.getResp().sendRedirect(String.format("%s%s?%s%s", frontendUrlBase, url, qs, hash));
-	}
-
-	protected void redirect_to_referer(String url) throws Exception {
-		Mvcs.getResp().sendRedirect(String.format("%s%s", frontendUrlBase, url));
-	}	
-	
-	protected String redirectToLoginPage() {
-		Mvcs.getHttpSession(true).setAttribute("savedUrl", Mvcs.getReq().getRequestURI());
-		return "redirect:/login";
-	}
 
 	protected String getSavedUrl() {
 		return (String) Mvcs.getHttpSession(true).getAttribute("savedUrl");
@@ -76,12 +51,6 @@ public abstract class BaseModule {
 
 	protected NutMap ajaxFail(String msg) {
 		return new NutMap().setv("ok", false).setv("msg", msg);
-	}
-
-	public void init() throws Exception {
-		if (urlbase == null)
-			urlbase = "";
-		urlbase += Mvcs.getServletContext().getContextPath();
 	}
 
 	// --------------------------
