@@ -28,6 +28,20 @@ public abstract class BaseModule {
 	@Inject
 	protected Dao dao;
 
+	protected User getMe() {
+		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
+		if(attr==null)
+			return null;
+		return (User) attr;
+	}
+	
+	protected void refreshMe(){
+		User me = getMe();
+		if(me!=null){
+			User user = dao.fetchLinks(dao.fetch(User.class, me.getId()),"delivery");
+			Mvcs.getHttpSession(true).setAttribute("me", user);
+		}
+	}
 
 	protected String getSavedUrl() {
 		return (String) Mvcs.getHttpSession(true).getAttribute("savedUrl");

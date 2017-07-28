@@ -1,17 +1,31 @@
 package com.huolihuoshan.backend.bean;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.util.List;
 
 import org.nutz.dao.entity.annotation.ColDefine;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Id;
+import org.nutz.dao.entity.annotation.Many;
 import org.nutz.dao.entity.annotation.Name;
+import org.nutz.dao.entity.annotation.One;
 import org.nutz.dao.entity.annotation.Table;
 
 @Table("User")
 public class User {
-
+	public User(){
+		
+	}
+	
+	public User(String openid,String nickname,String sex,String headImageUrl,
+			String country, String province, String city){
+		this.openid = openid;
+		this.nickname = nickname;
+		this.sex = sex;
+		this.headImageUrl = headImageUrl;
+		this.country = country;
+		this.province = province;
+		this.city = city;
+	}
 	@Id
     private int id;
     
@@ -22,9 +36,6 @@ public class User {
 	@Column
     private String nickname;
     
-    @Column
-    private String name;
-
     @Column
     private String sex;
 
@@ -40,7 +51,29 @@ public class User {
 
     @Column
     private String city;
+    
+    @Many(field = "id_user")
+    private List<Order> orders;
 
+    @One(field = "id")
+    private Delivery delivery;
+    
+    public Delivery getDelivery(){
+    	return delivery;
+    }
+    
+    public void setDelivery(Delivery delivery){
+    	this.delivery = delivery;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+    
 	public int getId() {
 		return id;
 	}
@@ -63,14 +96,6 @@ public class User {
 
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getHeadImageUrl() {
@@ -114,9 +139,9 @@ public class User {
 	}
 	
 	public String toQS() throws Exception{
-		return String.format("id=%s&openid=%s&name=%s&nickname=%s&sex=%s&country=%s&province=%s&city=%s&headImageUrl=%s",
+		return String.format("id=%d&openid=%s&nickname=%s&sex=%s&country=%s&province=%s&city=%s&headImageUrl=%s",
 				this.id,this.openid,
-				this.name,this.nickname,this.sex,
+				this.nickname,this.sex,
 				this.country,this.province,this.city,
 				this.headImageUrl);
 	}

@@ -1,18 +1,13 @@
 package com.huolihuoshan.backend.module;
 
-import java.net.URLEncoder;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.nutz.dao.Cnd;
 import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.json.Json;
 import org.nutz.lang.util.NutMap;
-import org.nutz.log.Log;
-import org.nutz.log.Logs;
 import org.nutz.mvc.Mvcs;
 import org.nutz.mvc.annotation.At;
 import org.nutz.mvc.annotation.Fail;
@@ -23,6 +18,7 @@ import org.nutz.mvc.annotation.Param;
 import org.nutz.weixin.spi.WxLogin;
 import org.nutz.weixin.spi.WxResp;
 
+import com.huolihuoshan.backend.bean.Delivery;
 import com.huolihuoshan.backend.bean.User;
 
 @IocBean
@@ -33,52 +29,16 @@ public class UserModule extends BaseModule{
 
 	@Inject("java:$wxLogin.configure($conf,null)")
 	protected WxLogin wxLogin;
-
-	private static String HOST_FRONTEND = "";
-	protected void redirect_to_referer(String url) throws Exception {
-		Mvcs.getResp().sendRedirect(String.format("%s%s", HOST_FRONTEND, url));
-	}
-	protected void redirect_to_model_user(User me, String caller) throws Exception {
-		String qs = (me==null ? "clear=true" : me.toQS());
-		Mvcs.getResp().sendRedirect(String.format("%s/model/user?%s&redirect=%s", HOST_FRONTEND, qs, caller));
-	}
-
-	//// wecat/login?host=host&caller=url&referer=url
-	@At
-	@GET
-	public void login(@Param("host") String host,
-			@Param("caller") String caller, @Param("referer") String referer, 
-			HttpServletRequest request,
-			HttpServletResponse response) throws Exception {
-		HOST_FRONTEND = host;
-		LOG.debugf("enter /wechat/login: host=%s; caller=%s; referer=%s", host, caller, referer);
-
-		User me = this.getMe();
-		if (me != null) {
-			// redirect back with qs:user
-			LOG.debug("user already signed in, redirect back to caller with me");
-			redirect_to_model_user(me,caller);
-		} else {
-			// redirect to weixin login
-			String state = String.format("%s111%s", caller.replace("/", "777").replace("#", "888"),
-					referer.replace("/", "777").replace("#", "888"));
-			String wx_login_url = wxLogin.authorize("/user/wxlogin", "snsapi_userinfo", state);
-			LOG.debugf("no user signed in, redirect to wechat: wx_login_url=%s", wx_login_url);
-			response.sendRedirect(wx_login_url);
-		}
-	}
-
-	//// this is called by wechat open platform
+	
+	//// this is called by client and redirected by wechat open platform
 	//// wechat/wxlogin?code=CODE&state=STATE
 	@At
 	@GET
-	public void wxlogin(@Param("code") String code, @Param("state") String state, HttpServletRequest request,
+	@Ok("jsp:/wechat/login")
+	public String wxlogin(@Param("code") String code, @Param("state") String state, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
 		LOG.debugf("enter /wechat/wxlogin: code=%s; state=%s", code, state);
-
-		String caller = state.split("111")[0].replace("777", "/").replace("888", "#");
-		String referer = state.split("111")[1].replace("777", "/").replace("888", "#");
 
 		WxResp resp = wxLogin.access_token(code);
 		if (resp.ok()) {
@@ -90,70 +50,130 @@ public class UserModule extends BaseModule{
 				openid = resp.getString("openid");
 				String nickname = resp.getString("nickname");
 				String sex = resp.getString("sex");
-				String name = "未知";
-				if (sex.equals("1"))
-					name = "先生";
-				if (sex.equals("2"))
-					name = "女士";
 				String country = resp.getString("country");
 				String province = resp.getString("province");
 				String city = resp.getString("city");
 				String headImageUrl = resp.getString("headimgurl");
 
-				User me = saveMe(openid, nickname, sex, name, headImageUrl, country, province, city);
+				User me = saveMe(openid, nickname, sex, 
+						headImageUrl, 
+						country, province, city);
 
-				// redirect back with qs:user
-				LOG.debugf("user already signed in, redirect back to caller with me;");
-				redirect_to_model_user(me, caller);
-				return;
+				return "ok";
 			} else {
-				LOG.debugf("userinfo failed: openid=%s; token=%s; err=[%d]%s", openid, token, resp.errcode(),
+				LOG.debugf("userinfo failed redirect to /: openid=%s; token=%s; err=[%d]%s", openid, token, resp.errcode(),
 						resp.errmsg());
-				redirect_to_referer(referer);
-				return;
+				return "err";
 			}
 		} else {
-			LOG.debugf("access_token failed: code=%s; err=[%d]%s", code, resp.errcode(), resp.errmsg());
-			redirect_to_referer(referer);
-			return;
+			LOG.debugf("access_token failed redirect to /: code=%s; err=[%d]%s", code, resp.errcode(), resp.errmsg());
+			return "err";
 		}
 	}
 	
 	@At
-	@GET
-	public void logout(@Param("redirect") String redirect, HttpSession session) throws Exception {
-		LOG.debugf("User logout. redirect to %s",redirect);
-		session.invalidate();
-		if(redirect==null)
-			redirect="/";
-		redirect_to_model_user(null,redirect);
-	}
-	
-	@At
-	public Object queryMe() throws Exception{
-		User me = this.getMe();
+	public Object logout(HttpSession session) throws Exception {
+		User me = getMe();
 		if(me==null){
-/*			this.saveMe("openid","lixin",
-					"1","bryt","http://wx.qlogo.cn/mmopen/g3MonUZtNHkdmzicIlibx6iaFqAc56vxLSUfpb6n5WKSYVY0ChQKkiaJSgQ1dZuTOgvLLrhJbERQQ4eMsv84eavHiaiceqxibJxCfHe/46",
-					"china","hunan","changsha");
-*/			
 			return new NutMap().
 					setv("ok", false).
-					setv("payload", "{\"errmsg\":\"no user signed in.\"}");
+					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+		}
+		
+		LOG.debugf("User logout. %s", me.getNickname());
+		session.invalidate();
+		
+		return new NutMap().
+				setv("ok", true).
+				setv("payload", new NutMap().setv("id", me.getId()));
+	}
+	
+	@At
+	public Object me() throws Exception{
+		User me = this.getMe();
+		if(me==null){			
+			return new NutMap().
+					setv("ok", false).
+					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
 		}
 		else{
+			String user = Json.toJson(me);
+			LOG.debug(user);
+			
 			return new NutMap().
 				setv("ok", true).
-				setv("payload", Json.toJson(me));
+				setv("payload", user);
 		}
+	}
+	
+	@At
+	public Object delivery() throws Exception{
+		User me = this.getMe();
+		if(me==null){			
+			return new NutMap().
+					setv("ok", false).
+					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+		}
+		Delivery delivery = dao.fetch(Delivery.class, me.getId());
+		String json;
+		if(delivery != null)
+			json = Json.toJson(delivery);
+		else
+			json = "{}";
+		return new NutMap().
+			setv("ok", true).
+			setv("payload", json);
+	}
+	
+	@At("/delivery/save")
+	@POST
+	public Object saveDelivery(@Param("id") int id, @Param("name") String name, 
+			@Param("phone") String phone, @Param("address") String address,
+			@Param("city") String city, @Param("location") String location,
+			@Param("lat") float lat, @Param("lng") float lng) throws Exception{
+		User me = this.getMe();
+		if(me==null){
+			return new NutMap().
+					setv("ok", false).
+					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+		}
+		boolean add_new = false;
+		Delivery delivery = dao.fetch(Delivery.class, id);
+		if (delivery == null) {
+			delivery = new Delivery();
+			add_new = true;
+		}
+		delivery.setId(id);
+		delivery.setName(name);
+		delivery.setAddress(address);
+		delivery.setCity(city);
+		delivery.setLocation(location);
+		delivery.setPhone(phone);
+		delivery.setLat(lat);
+		delivery.setLng(lng);
+		
+		if(add_new){
+			delivery = dao.insert(delivery);
+			LOG.debug("Create a new delivery. id="+id);
+		}
+		else{
+			dao.update(delivery);
+			LOG.debug("Update an existed delivery. name="+name);
+		}
+		
+		refreshMe();
+		
+		return new NutMap().
+				setv("ok", true).
+				setv("payload", new NutMap().setv("id", id));
 	}
 	
 	private User saveMe(String openid, String nickname, 
-			String sex, String name, String headImageUrl, 
+			String sex, String headImageUrl, 
 			String country, String province, String city) throws Exception {
 		
 		boolean add_new = false;
-		User user = dao.fetch(User.class, openid);
+		User user = dao.fetchLinks(dao.fetch(User.class, openid),"delivery");
 		if (user == null) {
 			user = new User();
 			add_new = true;
@@ -162,12 +182,11 @@ public class UserModule extends BaseModule{
 		user.setOpenid(openid);
 		user.setNickname(nickname);
 		user.setSex(sex);
-		user.setName(name);
 		user.setHeadImageUrl(headImageUrl);
 		user.setCountry(country);
 		user.setProvince(province);
 		user.setCity(city);
-		
+
 		if(add_new){
 			user = dao.insert(user);
 			LOG.debug("Create a new user. nickname="+nickname);
@@ -181,12 +200,6 @@ public class UserModule extends BaseModule{
 		return user;
 	}
 
-	private User getMe() {
-		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
-		if(attr==null)
-			return null;
-		return (User) attr;
-	}
 	
 	/*
 	//the following is for pure html/js frontend request
