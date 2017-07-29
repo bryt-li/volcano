@@ -27,15 +27,18 @@ import com.huolihuoshan.backend.bean.User;
 @Fail("http:500")
 public class UserModule extends BaseModule{
 
-	@Inject("java:$wxLogin.configure($conf,null)")
+	//configured in nutzwx project, location:
+	//      org/nutz/plugins/weixin/weixin.js
+	@Inject("java:$wxLogin.configure($conf,'weixin.')")
 	protected WxLogin wxLogin;
-	
+		
 	//// this is called by client and redirected by wechat open platform
 	//// wechat/wxlogin?code=CODE&state=STATE
 	@At
 	@GET
 	@Ok("jsp:/wechat/login")
-	public String wxlogin(@Param("code") String code, @Param("state") String state, HttpServletRequest request,
+	public String wxlogin(@Param("code") String code, @Param("state") String state, 
+			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
 		LOG.debugf("enter /wechat/wxlogin: code=%s; state=%s", code, state);
@@ -75,34 +78,25 @@ public class UserModule extends BaseModule{
 	public Object logout(HttpSession session) throws Exception {
 		User me = getMe();
 		if(me==null){
-			return new NutMap().
-					setv("ok", false).
-					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+			return err(new NutMap().setv("errmsg", "no user signed in"));
 		}
 		
 		LOG.debugf("User logout. %s", me.getNickname());
 		session.invalidate();
 		
-		return new NutMap().
-				setv("ok", true).
-				setv("payload", new NutMap().setv("id", me.getId()));
+		return ok(new NutMap().setv("id", me.getId()));
 	}
 	
 	@At
 	public Object me() throws Exception{
 		User me = this.getMe();
 		if(me==null){			
-			return new NutMap().
-					setv("ok", false).
-					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+			return err(new NutMap().setv("errmsg", "no user signed in"));
 		}
 		else{
 			String user = Json.toJson(me);
 			LOG.debug(user);
-			
-			return new NutMap().
-				setv("ok", true).
-				setv("payload", user);
+			return ok(user);
 		}
 	}
 	
@@ -110,9 +104,7 @@ public class UserModule extends BaseModule{
 	public Object delivery() throws Exception{
 		User me = this.getMe();
 		if(me==null){			
-			return new NutMap().
-					setv("ok", false).
-					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+			return err(new NutMap().setv("errmsg", "no user signed in"));
 		}
 		Delivery delivery = dao.fetch(Delivery.class, me.getId());
 		String json;
@@ -120,9 +112,7 @@ public class UserModule extends BaseModule{
 			json = Json.toJson(delivery);
 		else
 			json = "{}";
-		return new NutMap().
-			setv("ok", true).
-			setv("payload", json);
+		return ok(json);
 	}
 	
 	@At("/delivery/save")
@@ -130,13 +120,13 @@ public class UserModule extends BaseModule{
 	public Object saveDelivery(@Param("id") int id, @Param("name") String name, 
 			@Param("phone") String phone, @Param("address") String address,
 			@Param("city") String city, @Param("location") String location,
-			@Param("lat") float lat, @Param("lng") float lng) throws Exception{
+			@Param("lat") float lat, @Param("lng") float lng,
+			HttpSession session) throws Exception{
 		User me = this.getMe();
 		if(me==null){
-			return new NutMap().
-					setv("ok", false).
-					setv("payload", new NutMap().setv("errmsg", "no user signed in"));
+			return err(new NutMap().setv("errmsg", "no user signed in"));
 		}
+		
 		boolean add_new = false;
 		Delivery delivery = dao.fetch(Delivery.class, id);
 		if (delivery == null) {
@@ -161,11 +151,10 @@ public class UserModule extends BaseModule{
 			LOG.debug("Update an existed delivery. name="+name);
 		}
 		
-		refreshMe();
+		me.setDelivery(delivery);
+		session.setAttribute("me", me);
 		
-		return new NutMap().
-				setv("ok", true).
-				setv("payload", new NutMap().setv("id", id));
+		return ok(new NutMap().setv("id", id));
 	}
 	
 	private User saveMe(String openid, String nickname, 

@@ -2,12 +2,15 @@ package com.huolihuoshan.backend.bean;
 
 import java.util.Date;
 
+import org.apache.commons.text.RandomStringGenerator;
 import org.nutz.dao.entity.annotation.ColDefine;
 import org.nutz.dao.entity.annotation.ColType;
 import org.nutz.dao.entity.annotation.Column;
 import org.nutz.dao.entity.annotation.Id;
+import org.nutz.dao.entity.annotation.Name;
 import org.nutz.dao.entity.annotation.One;
 import org.nutz.dao.entity.annotation.Table;
+
 
 @Table("hlhs_Order")
 public class Order {
@@ -15,13 +18,14 @@ public class Order {
 		
 	}
 	
-	public Order(int id_user,
+	public Order(int max, int id_user,
 			Date date,String time,
 			String order_items, String delivery,
-			float items_price, float advance_price, float delivery_price,
-			float total_price, int payment){
+			int items_price, int advance_price, int delivery_price,
+			int total_price, int payment){
 		this.id_user = id_user;
-		this.status = 0;
+		this.code = generateCode(max);
+		this.status = OrderStatus.CREATED.toCode();
 		this.date = date;
 		this.time = time;
 		this.order_items = order_items;
@@ -33,9 +37,20 @@ public class Order {
 		this.payment = payment;
 	}
 	
+	private String generateCode(int max){
+		RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('0', '9').build();
+		String randomLetters = generator.generate(4);
+		generator = new RandomStringGenerator.Builder().withinRange('0', '9').build();
+		String randomNumbers = generator.generate(4);
+		return String.format("%s-%s-%d", randomLetters, randomNumbers, max);
+	}
+	
 	@Id
     private int id;
-        
+    
+	@Name
+	private String code;
+	
     @Column
     private int id_user;
     
@@ -58,16 +73,16 @@ public class Order {
     private String delivery;
 
     @Column
-    private float items_price;
+    private int items_price;
     
     @Column
-    private float delivery_price;
+    private int delivery_price;
 
     @Column
-    private float advance_price;
+    private int advance_price;
 
     @Column
-    private float total_price;
+    private int total_price;
 
     @Column
     private int payment;
@@ -107,6 +122,14 @@ public class Order {
 		this.date = date;
 	}
 
+	public String getCode(){
+		return code;
+	}
+	
+	public void setCode(String code){
+		this.code = code;
+	}
+	
 	public String getTime() {
 		return time;
 	}
@@ -135,31 +158,31 @@ public class Order {
 		return items_price;
 	}
 
-	public void setItems_price(float items_price) {
+	public void setItems_price(int items_price) {
 		this.items_price = items_price;
 	}
 
-	public float getDelivery_price() {
+	public int getDelivery_price() {
 		return delivery_price;
 	}
 
-	public void setDelivery_price(float delivery_price) {
+	public void setDelivery_price(int delivery_price) {
 		this.delivery_price = delivery_price;
 	}
 
-	public float getAdvance_price() {
+	public int getAdvance_price() {
 		return advance_price;
 	}
 
-	public void setAdvance_price(float advance_price) {
+	public void setAdvance_price(int advance_price) {
 		this.advance_price = advance_price;
 	}
 
-	public float getTotal_price() {
+	public int getTotal_price() {
 		return total_price;
 	}
 
-	public void setTotal_price(float total_price) {
+	public void setTotal_price(int total_price) {
 		this.total_price = total_price;
 	}
 

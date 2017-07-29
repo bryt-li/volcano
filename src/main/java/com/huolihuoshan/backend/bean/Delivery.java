@@ -23,7 +23,7 @@ public class Delivery {
 		this.phone = phone;
 	}
 	
-	@Id
+	@Id(auto=false)
     private int id;
         
     @Column

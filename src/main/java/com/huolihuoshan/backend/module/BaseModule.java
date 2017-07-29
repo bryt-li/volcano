@@ -35,14 +35,6 @@ public abstract class BaseModule {
 		return (User) attr;
 	}
 	
-	protected void refreshMe(){
-		User me = getMe();
-		if(me!=null){
-			User user = dao.fetchLinks(dao.fetch(User.class, me.getId()),"delivery");
-			Mvcs.getHttpSession(true).setAttribute("me", user);
-		}
-	}
-
 	protected String getSavedUrl() {
 		return (String) Mvcs.getHttpSession(true).getAttribute("savedUrl");
 	}
@@ -59,6 +51,14 @@ public abstract class BaseModule {
 		return new QueryResult(roles, pager);
 	}
 
+	protected NutMap ok(Object data) {
+		return new NutMap().setv("ok", true).setv("payload", data);
+	}
+	
+	protected NutMap err(Object data){
+		return new NutMap().setv("ok", false).setv("payload", data);
+	}
+	
 	protected NutMap ajaxOk(Object data) {
 		return new NutMap().setv("ok", true).setv("data", data);
 	}

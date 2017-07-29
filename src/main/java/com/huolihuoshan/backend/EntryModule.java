@@ -1,5 +1,6 @@
 package com.huolihuoshan.backend;
 
+import org.apache.commons.text.RandomStringGenerator;
 import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.json.Json;
 import org.nutz.lang.util.NutMap;
@@ -42,7 +43,10 @@ args = { "*js", "ioc/", "*anno", "com.huolihuoshan.backend", "*weixin", "*tx" })
 public class EntryModule extends BaseModule{
 	@At
 	public String foo(String args) {
-		return "hello"+args;
+		RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('A', 'Z').build();
+		String randomLetters = generator.generate(32);
+
+		return randomLetters;
 	}
 
 }
