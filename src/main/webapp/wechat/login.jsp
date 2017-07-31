@@ -18,9 +18,9 @@
 	console.log(msg);	
 	if(isWeiXin()){
 		if(msg=='err')
-			window.parent.onSignInFailed();
+			window.parent.window.onSignInFailed();
 		else
-			window.parent.onSignedIn(msg);
+			window.parent.window.onSignedIn(msg);
 	}else{
 		window.parent.postMessage(
 			{
