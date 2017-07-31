@@ -3,7 +3,12 @@ var ioc = {
 	conf : {
 		type : "org.nutz.ioc.impl.PropertiesProxy",
 		fields : {
-			paths : [ "custom/misc.properties" ]
+			paths : [ 
+			          "custom/misc.properties",
+			          "custom/wechat.properties",
+			          "custom/wechat.login.properties",
+			          "custom/wechat.pay.properties",
+			        ]
 		}
 	}
 };

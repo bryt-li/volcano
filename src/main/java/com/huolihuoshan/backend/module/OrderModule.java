@@ -2,7 +2,9 @@ package com.huolihuoshan.backend.module;
 
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,22 +37,64 @@ public class OrderModule extends BaseModule {
 	
 	@At
 	@POST
-	public Object create(@Param("date") Date date, @Param("time") String time, @Param("order_items") String order_items,
-			@Param("delivery") String delivery, @Param("items_price") int items_price,
-			@Param("advance_price") int advance_price, @Param("delivery_price") int delivery_price,
-			@Param("total_price") int total_price, @Param("payment") int payment) throws Exception {
+	public Object get(@Param("id") int id){
 		User me = this.getMe();
 		if (me == null) {
 			return err(new NutMap().setv("errmsg", "no user signed in"));
 		}
+		
+		Order order = dao.fetch(Order.class,id);
+		if(order==null){
+			return err(new NutMap().setv("errmsg", "no order found"));
+		}
 
+		return ok(order);
+	}
+	
+	@At
+	@POST
+	public Object list(){
+		User me = this.getMe();
+		if (me == null) {
+			return err(new NutMap().setv("errmsg", "no user signed in"));
+		}
+		
+		me = dao.fetchLinks(me,"orders");
+		if(me.getOrders()==null){
+			return err(new NutMap().setv("errmsg", "no order found"));
+		}
+
+		return ok(me.getOrders());
+	}
+	
+	@At
+	@POST
+	public Object create(
+			@Param("date") String date, 
+			@Param("time") String time, 
+			@Param("order_items") String order_items,
+			@Param("delivery") String delivery, 
+			@Param("items_price") int items_price,
+			@Param("advance_price") int advance_price, 
+			@Param("delivery_price") int delivery_price,
+			@Param("total_price") int total_price, 
+			@Param("payment") int payment) throws Exception {
+		User me = this.getMe();
+		if (me == null) {
+			return err(new NutMap().setv("errmsg", "no user signed in"));
+		}
+		
+		//把date从字符串转为Date
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
+	    Date dt = sdf.parse(date); 
+	    
 		// 获得最大ID，用于生成订单号code
 		Sql sql = Sqls.create("SELECT MAX(id) FROM hlhs_Order;");
 		dao.execute(sql);
 		int max = sql.getInt(0);
 		max++;
 
-		Order order = new Order(max, me.getId(), date, time, order_items, delivery, items_price, advance_price,
+		Order order = new Order(max, me.getId(), dt, time, order_items, delivery, items_price, advance_price,
 				delivery_price, total_price, payment);
 
 		order = dao.insert(order);

@@ -4,13 +4,16 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>wechat login return</title>
 	<script>
+	var msg = '<%=request.getAttribute("obj")%>';
 	window.parent.postMessage(
 		{
 			sender: 'hlhs-backend',
-			message: '<%=request.getAttribute("obj")%>'
+			message: msg
 		},
 		'*'
 	);
+	console.log('send message to parent window.');
+	console.log(msg);
 	</script>
 </head>
 <body>

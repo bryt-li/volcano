@@ -23,16 +23,15 @@ public class OrderManager {
 
 	@Inject
 	protected Dao dao;
-
 	
 	@Inject
 	private WxApi2 wxApi2;
 
+	@Inject("java:$conf.get('weixin.appid')")
+	private String APP_ID;
+
 	@Inject("java:$conf.get('wechat.api.key')")
 	private String API_KEY;
-
-	@Inject("java:$conf.get('appid')")
-	private String APP_ID;
 	
 	@Inject("java:$conf.get('wechat.pay.mch_id')")
 	private String MCH_ID;

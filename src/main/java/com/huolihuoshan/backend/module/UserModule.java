@@ -31,7 +31,13 @@ public class UserModule extends BaseModule{
 	//      org/nutz/plugins/weixin/weixin.js
 	@Inject("java:$wxLogin.configure($conf,'weixin.')")
 	protected WxLogin wxLogin;
-		
+	
+	@Inject("java:$conf.get('wechat.login.access_token_url')")
+	private String access_token_url;
+
+	@Inject("java:$conf.get('wechat.login.userinfo_url')")
+	private String userinfo_url;
+
 	//// this is called by client and redirected by wechat open platform
 	//// wechat/wxlogin?code=CODE&state=STATE
 	@At
@@ -43,12 +49,12 @@ public class UserModule extends BaseModule{
 
 		LOG.debugf("enter /wechat/wxlogin: code=%s; state=%s", code, state);
 
-		WxResp resp = wxLogin.access_token(code);
+		WxResp resp = wxLogin.access_token(access_token_url, code);
 		if (resp.ok()) {
 			String openid = resp.getString("openid");
 			String token = resp.getString("access_token");
 
-			resp = wxLogin.userinfo(openid, token);
+			resp = wxLogin.userinfo(userinfo_url, openid, token);
 			if (resp.ok()) {
 				openid = resp.getString("openid");
 				String nickname = resp.getString("nickname");
@@ -61,8 +67,10 @@ public class UserModule extends BaseModule{
 				User me = saveMe(openid, nickname, sex, 
 						headImageUrl, 
 						country, province, city);
-
-				return "ok";
+				
+				String json = Json.toJson(me).replace("\n", " ");
+				LOG.debugf("return user json: %s",json);
+				return json;
 			} else {
 				LOG.debugf("userinfo failed redirect to /: openid=%s; token=%s; err=[%d]%s", openid, token, resp.errcode(),
 						resp.errmsg());
@@ -90,29 +98,15 @@ public class UserModule extends BaseModule{
 	@At
 	public Object me() throws Exception{
 		User me = this.getMe();
-		if(me==null){			
-			return err(new NutMap().setv("errmsg", "no user signed in"));
+		if(me==null){
+			String msg = "no user signed in";
+			LOG.debug(msg);
+			return err(new NutMap().setv("errmsg", msg));
 		}
 		else{
-			String user = Json.toJson(me);
-			LOG.debug(user);
-			return ok(user);
+			LOG.debugf("return signed-in user: id=%d",me.getId());
+			return ok(me);
 		}
-	}
-	
-	@At
-	public Object delivery() throws Exception{
-		User me = this.getMe();
-		if(me==null){			
-			return err(new NutMap().setv("errmsg", "no user signed in"));
-		}
-		Delivery delivery = dao.fetch(Delivery.class, me.getId());
-		String json;
-		if(delivery != null)
-			json = Json.toJson(delivery);
-		else
-			json = "{}";
-		return ok(json);
 	}
 	
 	@At("/delivery/save")
@@ -133,7 +127,8 @@ public class UserModule extends BaseModule{
 			delivery = new Delivery();
 			add_new = true;
 		}
-		delivery.setId(id);
+		
+		delivery.setId(me.getId());
 		delivery.setName(name);
 		delivery.setAddress(address);
 		delivery.setCity(city);
@@ -144,17 +139,18 @@ public class UserModule extends BaseModule{
 		
 		if(add_new){
 			delivery = dao.insert(delivery);
-			LOG.debug("Create a new delivery. id="+id);
+			LOG.debug("Create a new delivery. id="+delivery.getId());
 		}
 		else{
 			dao.update(delivery);
 			LOG.debug("Update an existed delivery. name="+name);
 		}
 		
+		//save to session
 		me.setDelivery(delivery);
 		session.setAttribute("me", me);
 		
-		return ok(new NutMap().setv("id", id));
+		return ok(new NutMap().setv("id", delivery.getId()));
 	}
 	
 	private User saveMe(String openid, String nickname, 
@@ -163,6 +159,7 @@ public class UserModule extends BaseModule{
 		
 		boolean add_new = false;
 		User user = dao.fetchLinks(dao.fetch(User.class, openid),"delivery");
+		
 		if (user == null) {
 			user = new User();
 			add_new = true;
