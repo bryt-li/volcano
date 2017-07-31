@@ -37,18 +37,20 @@ public class UserModule extends BaseModule{
 
 	@Inject("java:$conf.get('wechat.login.userinfo_url')")
 	private String userinfo_url;
-
+	
+	@Inject("java:$conf.get('wechat.login.frontend_url')")
+	private String hlhs_frontend_url;
+	
 	//// this is called by client and redirected by wechat open platform
 	//// wechat/wxlogin?code=CODE&state=STATE
 	@At
-	@GET
-	@Ok("jsp:/wechat/login")
-	public String wxlogin(@Param("code") String code, @Param("state") String state, 
+	public void wxlogin(@Param("code") String code, @Param("state") String state, 
 			HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 
 		LOG.debugf("enter /wechat/wxlogin: code=%s; state=%s", code, state);
-
+		String dest = state.replace("777", "/");
+		
 		WxResp resp = wxLogin.access_token(access_token_url, code);
 		if (resp.ok()) {
 			String openid = resp.getString("openid");
@@ -70,15 +72,18 @@ public class UserModule extends BaseModule{
 				
 				String json = Json.toJson(me).replace("\n", " ");
 				LOG.debugf("return user json: %s",json);
-				return json;
+				String url = String.format("%s%s", hlhs_frontend_url,dest);
+				response.sendRedirect(url);
 			} else {
 				LOG.debugf("userinfo failed redirect to /: openid=%s; token=%s; err=[%d]%s", openid, token, resp.errcode(),
 						resp.errmsg());
-				return "err";
+				String url = String.format("%s", hlhs_frontend_url);
+				response.sendRedirect(url);
 			}
 		} else {
 			LOG.debugf("access_token failed redirect to /: code=%s; err=[%d]%s", code, resp.errcode(), resp.errmsg());
-			return "err";
+			String url = String.format("%s", hlhs_frontend_url);
+			response.sendRedirect(url);
 		}
 	}
 	

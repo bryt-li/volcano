@@ -3,7 +3,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>完成微信登录</title>
+	<title>test</title>
 	<script>
 	function isWeiXin(){
 	    var ua = window.navigator.userAgent.toLowerCase();
@@ -13,25 +13,9 @@
 	        return false;
 	    }
 	}
-	
-	var msg = '<%=request.getAttribute("obj")%>';
-	console.log(msg);	
-	if(isWeiXin()){
-		if(msg=='err')
-			window.parent.window.onSignInFailed();
-		else
-			window.parent.window.onSignedIn(msg);
-	}else{
-		window.parent.postMessage(
-			{
-				sender: 'hlhs-backend',
-				message: msg
-			},
-			'*'
-		);
-	}
 	</script>
 </head>
 <body>
+TEST
 </body>
 </html>
