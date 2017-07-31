@@ -105,7 +105,8 @@ public class OrderModule extends BaseModule {
 	
 	@At("/pay/wechat/jsapi")
 	@POST
-	public Object getWechatPayJsapiArgs(@Param("id") int id,
+	public Object getWechatPayJsapiArgs(
+			@Param("id") int id,
 			HttpServletRequest request) throws Exception {
 		User me = this.getMe();
 		if (me == null) {
@@ -116,14 +117,13 @@ public class OrderModule extends BaseModule {
 			return err(new NutMap().setv("errmsg", "no order found"));
 		}
 		
-		//用新的pay_code向微信支付平台下单，并保存
+		//随机生成一个新的pay_code，向微信支付平台下单
 		order.refreshPayCode();
-		dao.update(order);
 
 		// 终端IP地址
 		String ip = getIpAddr(request);
 		
-		//创建微信付款订单
+		//创建微信预付款订单
 		NutMap args = this.orderManager.createWechatPayment(
 				me.getOpenid(),
 				order.getPay_code(),
@@ -131,15 +131,15 @@ public class OrderModule extends BaseModule {
 				ip);
 		
 		//判断是否创建成功
-		String pkg = args.getString("package");
-		LOG.debugf("create prepay order: package=%s", pkg);
-		if(pkg!=null){
-			String[] parts = pkg.split("=");
-			if(parts.length==2){
-				return ok(args);
-			}
+		if(args == null){
+			return err(new NutMap().setv("errmsg", "create wechat prepay failed"));			
 		}
-		return err(new NutMap().setv("errmsg", "create wechat prepay failed"));
+		
+		//保存pay_code，以便支付通知到达时能找到对应的订单
+		dao.update(order);
+		//返回给客户端JSAPI参数
+		return ok(args);
+
 	}
 	
 	//注意：这个支付通知由微信支付平台调用
