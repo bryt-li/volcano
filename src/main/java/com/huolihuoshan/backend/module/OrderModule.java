@@ -103,40 +103,47 @@ public class OrderModule extends BaseModule {
 		return ok(new NutMap().setv("id", order.getId()).setv("code", order.getCode()));
 	}
 	
-	@At("/pay/wechat")
+	@At("/pay/wechat/jsapi")
 	@POST
-	public Object wechatPay(@Param("order_code") String order_code, @Param("total_fee") int total_fee,
+	public Object getWechatPayJsapiArgs(@Param("id") int id,
 			HttpServletRequest request) throws Exception {
 		User me = this.getMe();
 		if (me == null) {
 			return err(new NutMap().setv("errmsg", "no user signed in"));
 		}
-		Order order = dao.fetch(Order.class, order_code);
+		Order order = dao.fetch(Order.class, id);
 		if (order == null) {
 			return err(new NutMap().setv("errmsg", "no order found"));
 		}
+		
+		//用新的pay_code向微信支付平台下单，并保存
+		order.refreshPayCode();
+		dao.update(order);
 
 		// 终端IP地址
 		String ip = getIpAddr(request);
 		
 		//创建微信付款订单
-		String prepay_id = this.orderManager.createWechatPayment(
+		NutMap args = this.orderManager.createWechatPayment(
 				me.getOpenid(),
-				order_code,
-				total_fee,
+				order.getPay_code(),
+				order.getTotal_price(),
 				ip);
-
-		if(null!=prepay_id){
-			return ok(new NutMap().
-					setv("order_code", order_code).
-					setv("prepay_id", prepay_id));
-		}else{
-			return err(new NutMap().setv("errmsg", "create wechat prepay failed"));
+		
+		//判断是否创建成功
+		String pkg = args.getString("package");
+		LOG.debugf("create prepay order: package=%s", pkg);
+		if(pkg!=null){
+			String[] parts = pkg.split("=");
+			if(parts.length==2){
+				return ok(args);
+			}
 		}
+		return err(new NutMap().setv("errmsg", "create wechat prepay failed"));
 	}
 	
 	//注意：这个支付通知由微信支付平台调用
-	//依赖主动订单查询确定订单状态，不依赖这个调用处理订单状态
+	//
 	@At("/pay/wechat/notify")
 	@POST
 	public String wechatPayNotify(HttpServletRequest request, HttpServletResponse response) throws Exception{

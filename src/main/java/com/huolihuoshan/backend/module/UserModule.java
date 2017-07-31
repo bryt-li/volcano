@@ -71,7 +71,7 @@ public class UserModule extends BaseModule{
 						country, province, city);
 				
 				String json = Json.toJson(me).replace("\n", " ");
-				LOG.debugf("return user json: %s",json);
+				LOG.debugf("return user json: %s",json); 
 				String url = String.format("%s%s", hlhs_frontend_url,dest);
 				response.sendRedirect(url);
 			} else {
@@ -157,6 +157,7 @@ public class UserModule extends BaseModule{
 		
 		return ok(new NutMap().setv("id", delivery.getId()));
 	}
+	
 	
 	private User saveMe(String openid, String nickname, 
 			String sex, String headImageUrl, 

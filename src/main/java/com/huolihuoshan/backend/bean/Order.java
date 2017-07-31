@@ -25,6 +25,8 @@ public class Order {
 			int total_price, int payment){
 		this.id_user = id_user;
 		this.code = generateCode(max);
+		this.pay_code = null;
+		this.create_time = new Date();
 		this.status = OrderStatus.CREATED.toCode();
 		this.date = date;
 		this.time = time;
@@ -45,11 +47,25 @@ public class Order {
 		return String.format("%s-%s-%d", randomLetters, randomNumbers, max);
 	}
 	
+	public void refreshPayCode(){
+		RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('A', 'Z').build();
+		String randomLetters = generator.generate(16);
+		generator = new RandomStringGenerator.Builder().withinRange('0', '9').build();
+		String randomNumbers = generator.generate(16);
+		this.pay_code = String.format("%s%s", randomLetters, randomNumbers);
+	}
+	
 	@Id
     private int id;
     
 	@Name
 	private String code;
+	
+	@Column
+	private String pay_code;
+	
+	@Column
+	private Date create_time;
 	
     @Column
     private int id_user;
@@ -200,5 +216,21 @@ public class Order {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getPay_code() {
+		return pay_code;
+	}
+
+	public void setPay_code(String pay_code) {
+		this.pay_code = pay_code;
+	}
+
+	public Date getCreate_time() {
+		return create_time;
+	}
+
+	public void setCreate_time(Date create_time) {
+		this.create_time = create_time;
 	}
 }

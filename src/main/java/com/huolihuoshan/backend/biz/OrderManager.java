@@ -1,10 +1,10 @@
 package com.huolihuoshan.backend.biz;
 
 import org.apache.commons.text.RandomStringGenerator;
+import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
-import org.nutz.lang.Xmls;
 import org.nutz.lang.util.NutMap;
 import org.nutz.log.Log;
 import org.nutz.log.Logs;
@@ -64,27 +64,26 @@ public class OrderManager {
 		}
 		
 		//验证订单号
-		String order_code = map.getString("out_trade_no");
-		Order order = dao.fetch(Order.class,order_code);
+		String pay_code = map.getString("out_trade_no");
+		Order order = dao.fetch(Order.class, Cnd.where("pay_code", "=", pay_code));
 		if(order==null){
-			LOG.fatalf("支付通知消息找不到对应的订单。 recv order_code=%s", order_code);
+			LOG.fatalf("支付通知消息找不到对应的订单。 recv pay_code=%s", pay_code);
 			return null;
 		}
 		
 		//验证订单状态
-		OrderStatus status = OrderStatus.fromCode(order.getStatus()); 
-		if(status != OrderStatus.CREATED){
-			LOG.debugf("订单已支付完成，status=%s",status);
+		if(order.getStatus() != OrderStatus.CREATED.toCode()){
+			LOG.debugf("订单已支付完成，status=%d",order.getStatus());
 			return null;
 		}
 		
 		//验证订单金额
-		int total_fee = Integer.parseInt(map.getString("total_fee"));
+		int total_fee = map.getInt("total_fee");
 		if(total_fee != order.getTotal_price()){
 			LOG.fatalf("支付通知消息对应的订单金额不一致。 recv=%d expect=%d", total_fee, order.getTotal_price() );
 			return null;
 		}
-				
+
 		//验证用户
 		User user = dao.fetch(User.class,order.getId_user());
 		if(user==null){
@@ -109,7 +108,7 @@ public class OrderManager {
 	}
 
 	
-	public String createWechatPayment(String openid, String order_code, int total_fee, String ip) {
+	public NutMap createWechatPayment(String openid, String pay_code, int total_fee, String ip) {
 		// 32位随机字符串
 		RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('A', 'Z').build();
 		String nonce_str = generator.generate(32);
@@ -119,16 +118,14 @@ public class OrderManager {
 		wxPayUnifiedOrder.setMch_id(MCH_ID);
 		wxPayUnifiedOrder.setNonce_str(nonce_str);
 		wxPayUnifiedOrder.setBody("活力火山健康轻食");
-		wxPayUnifiedOrder.setOut_trade_no(order_code);
+		wxPayUnifiedOrder.setOut_trade_no(pay_code);
 		wxPayUnifiedOrder.setTotal_fee(total_fee);
 		wxPayUnifiedOrder.setSpbill_create_ip(ip);
 		wxPayUnifiedOrder.setNotify_url(NOTIFY_URL);
 		wxPayUnifiedOrder.setTrade_type("JSAPI");
 		wxPayUnifiedOrder.setOpenid(openid);
 
-		NutMap resp = this.wxApi2.pay_unifiedorder(API_KEY, wxPayUnifiedOrder);
-		String prepay_id = resp.getString("prepay_id");
-		return prepay_id;
+		return this.wxApi2.pay_jsapi(API_KEY, wxPayUnifiedOrder);
 	}
 	
 }
