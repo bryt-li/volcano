@@ -1,22 +1,37 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<title>微信登录返回</title>
+	<title>完成微信登录</title>
 	<script>
+	function isWeiXin(){
+	    var ua = window.navigator.userAgent.toLowerCase();
+	    if(ua.match(/MicroMessenger/i) == 'micromessenger'){
+	        return true;
+	    }else{
+	        return false;
+	    }
+	}
+	
 	var msg = '<%=request.getAttribute("obj")%>';
-	window.parent.postMessage(
-		{
-			sender: 'hlhs-backend',
-			message: msg
-		},
-		'*'
-	);
-	console.log('send message to parent window.');
 	console.log(msg);	
+	if(isWeiXin()){
+		if(msg=='err')
+			window.parent.onSignInFailed();
+		else
+			window.parent.onSignedIn(msg);
+	}else{
+		window.parent.postMessage(
+			{
+				sender: 'hlhs-backend',
+				message: msg
+			},
+			'*'
+		);
+	}
 	</script>
 </head>
 <body>
-	<p><%=request.getAttribute("obj")%></p>
 </body>
 </html>
