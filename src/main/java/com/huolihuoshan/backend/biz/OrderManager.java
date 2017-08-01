@@ -273,6 +273,7 @@ public class OrderManager extends Thread{
 		WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
 		wxPayUnifiedOrder.setAppid(APP_ID);
 		wxPayUnifiedOrder.setMch_id(MCH_ID);
+		wxPayUnifiedOrder.setBody("HLHS");
 		wxPayUnifiedOrder.setOut_trade_no(payment.getCode());
 		wxPayUnifiedOrder.setTotal_fee(order.getTotal_price());
 		wxPayUnifiedOrder.setSpbill_create_ip(ip);
