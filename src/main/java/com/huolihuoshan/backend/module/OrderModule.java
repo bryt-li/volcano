@@ -139,6 +139,8 @@ public class OrderModule extends BaseModule {
 	public String wechatPayNotify(HttpServletRequest request, HttpServletResponse response) throws Exception{
 		InputStreamReader isr = new InputStreamReader(request.getInputStream(), Charset.forName("UTF-8"));
 		String content = Streams.readAndClose(isr);
+		LOG.debug(content);
+		
 		NutMap map = Xmls.xmlToMap(content);
 		
 		NutMap params = NutMap.NEW();

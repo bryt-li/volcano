@@ -180,6 +180,7 @@ public class OrderManager extends Thread{
 		}
 		
 		String trade_state = map.getString("trade_state");
+		LOG.debugf("trade_state=%s",trade_state);
 		String err_code = map.getString("err_code");
 		String err_code_des = map.getString("err_code_des");
 		String openid = map.getString("openid");
