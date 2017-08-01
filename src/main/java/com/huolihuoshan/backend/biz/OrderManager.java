@@ -55,23 +55,7 @@ public class OrderManager extends Thread{
 	}
 	
 	public void startup() throws Exception {
-		this.KEY = API_KEY;
-		if(SANDBOX){
-			//获取沙箱密钥
-			WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
-			wxPayUnifiedOrder.setMch_id(MCH_ID);
-			NutMap map = this.getsignkey(API_KEY, wxPayUnifiedOrder);
-			String sandbox_signkey = map.getString("sandbox_signkey");
-			if(null == sandbox_signkey){
-				LOG.debugf("get sandbox sign key failed, use API key: %s", API_KEY);
-				this.KEY = API_KEY;
-			}
-			else{
-				LOG.debugf("get sandbox sign key: %s",sandbox_signkey);
-				this.KEY = sandbox_signkey;
-			}
-		}
-		
+		this.KEY = API_KEY;		
 		this.isRunning = true;
 		this.start();
 	}
@@ -268,6 +252,22 @@ public class OrderManager extends Thread{
 	}
 	
 	public NutMap createWechatPayment(User user, Order order, String ip) {
+		if(SANDBOX){
+			//获取沙箱密钥
+			WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
+			wxPayUnifiedOrder.setMch_id(MCH_ID);
+			NutMap map = this.getsignkey(API_KEY, wxPayUnifiedOrder);
+			String sandbox_signkey = map.getString("sandbox_signkey");
+			if(null == sandbox_signkey){
+				LOG.debugf("get sandbox sign key failed, use API key: %s", API_KEY);
+				this.KEY = API_KEY;
+			}
+			else{
+				LOG.debugf("get sandbox sign key: %s",sandbox_signkey);
+				this.KEY = sandbox_signkey;
+			}
+		}
+		
 		Payment payment = new Payment(order.getId());
 		
 		WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
@@ -281,7 +281,6 @@ public class OrderManager extends Thread{
 		wxPayUnifiedOrder.setTrade_type("JSAPI");
 		wxPayUnifiedOrder.setOpenid(user.getOpenid());
 
-		//return this.pay_jsapi(API_KEY, wxPayUnifiedOrder);
 		NutMap args = this.pay_jsapi(KEY, wxPayUnifiedOrder);
 		if(null == args){
 			return null;
