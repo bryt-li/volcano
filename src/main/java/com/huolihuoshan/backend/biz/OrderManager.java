@@ -96,7 +96,7 @@ public class OrderManager extends Thread{
 	private String NOTIFY_URL;
 	
 	private String KEY;
-	private boolean SANDBOX = false;
+	private boolean SANDBOX = true;
 	
 	//定时主动查询没有任何响应的订单的状态
 	public synchronized void checkPayment(){
@@ -114,6 +114,7 @@ public class OrderManager extends Thread{
 				if(!processWechatPaymentQueryReturn(map)){
 					//主动查到不成功的订单，就直接删除了
 					dao.delete(payment);
+					LOG.debugf("delete payment, id=%d",payment.getId());
 				}
 			}
 		}
