@@ -117,29 +117,19 @@ public class OrderModule extends BaseModule {
 			return err(new NutMap().setv("errmsg", "no order found"));
 		}
 		
-		//随机生成一个新的pay_code，向微信支付平台下单
-		order.refreshPayCode();
-
 		// 终端IP地址
 		String ip = getIpAddr(request);
 		
 		//创建微信预付款订单
-		NutMap args = this.orderManager.createWechatPayment(
-				me.getOpenid(),
-				order.getPay_code(),
-				order.getTotal_price(),
-				ip);
+		NutMap args = this.orderManager.createWechatPayment(me,order,ip);
 		
 		//判断是否创建成功
 		if(args == null){
 			return err(new NutMap().setv("errmsg", "create wechat prepay failed"));			
 		}
 		
-		//保存pay_code，以便支付通知到达时能找到对应的订单
-		dao.update(order);
 		//返回给客户端JSAPI参数
 		return ok(args);
-
 	}
 	
 	//注意：这个支付通知由微信支付平台调用
@@ -151,17 +141,16 @@ public class OrderModule extends BaseModule {
 		String content = Streams.readAndClose(isr);
 		NutMap map = Xmls.xmlToMap(content);
 		
-		String error = this.orderManager.processWechatPaymentNotification(map);
 		NutMap params = NutMap.NEW();
-		if(null == error){
+		if(this.orderManager.processWechatPaymentResponse(map)){
 			params.put("return_code", "SUCCESS");
 			params.put("return_msg", "OK");
 		}else{
 			params.put("return_code", "FAIL");
-			params.put("return_msg", error);
+			params.put("return_msg", "ERR");
 		}
 		String xml = Xmls.mapToXml(params);
-		return xml;				
+		return xml;
 	}
 
 	//返回客户端的IP地址

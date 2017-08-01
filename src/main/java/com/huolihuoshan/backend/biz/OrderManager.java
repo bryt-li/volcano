@@ -1,14 +1,16 @@
 package com.huolihuoshan.backend.biz;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.text.RandomStringGenerator;
 import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 import org.nutz.http.Request;
+import org.nutz.http.Request.METHOD;
 import org.nutz.http.Response;
 import org.nutz.http.Sender;
-import org.nutz.http.Request.METHOD;
 import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
 import org.nutz.lang.Lang;
@@ -23,13 +25,74 @@ import org.nutz.weixin.util.WxPaySign;
 
 import com.huolihuoshan.backend.bean.Order;
 import com.huolihuoshan.backend.bean.OrderStatus;
+import com.huolihuoshan.backend.bean.Payment;
 import com.huolihuoshan.backend.bean.User;
 
 @IocBean(singleton = true)
-public class OrderManager {
+public class OrderManager extends Thread{
 
 	private final Log LOG = Logs.getLog(this.getClass());
 
+	//检查间隔
+	private static final int INTERVAL = 5000;
+	private int tick = 0;
+	private boolean intervalTicked(int elapsed){
+		this.tick += elapsed;
+		if(this.tick >= INTERVAL){
+			this.tick =0;
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private boolean isRunning = false;
+	public synchronized boolean isRunning() {
+		return isRunning;
+	}
+	public synchronized void setRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+	
+	public void startup() throws Exception {
+		this.KEY = API_KEY;
+		if(SANDBOX){
+			//获取沙箱密钥
+			WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
+			wxPayUnifiedOrder.setMch_id(MCH_ID);
+			NutMap map = this.getsignkey(API_KEY, wxPayUnifiedOrder);
+			String sandbox_signkey = map.getString("sandbox_signkey");
+			if(null == sandbox_signkey){
+				LOG.debugf("get sandbox sign key failed, use API key: %s", API_KEY);
+				this.KEY = API_KEY;
+			}
+			else{
+				LOG.debugf("get sandbox sign key: %s",sandbox_signkey);
+				this.KEY = sandbox_signkey;
+			}
+		}
+		
+		this.isRunning = true;
+		this.start();
+	}
+	public void shutdown() throws InterruptedException {
+		this.setRunning(false);
+		this.join();
+	}
+	
+	public void run() {
+		int s = 100;
+		while (isRunning()) {
+			try {
+				sleep(s);
+				if(intervalTicked(s)){
+					checkPayment();
+				}
+			} catch (Exception e) {
+			}
+		}
+	}
+	
 	@Inject
 	protected Dao dao;
 	
@@ -48,16 +111,41 @@ public class OrderManager {
 	@Inject("java:$conf.get('wechat.pay.notify_url')")
 	private String NOTIFY_URL;
 	
-	public synchronized String processWechatPaymentNotification(NutMap map) {
+	private String KEY;
+	private boolean SANDBOX = true;
+	
+	//定时主动查询没有任何响应的订单的状态
+	public synchronized void checkPayment(){
+		List<Payment> list = dao.query(Payment.class, Cnd.where("trade_state","=","NULL"));
+		long now = new Date().getTime()/1000;
+		for(Payment payment : list){
+			long timeout = now - payment.getCreate_time().getTime()/1000;
+			if(timeout>30){
+				WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
+				wxPayUnifiedOrder.setAppid(APP_ID);
+				wxPayUnifiedOrder.setMch_id(MCH_ID);
+				wxPayUnifiedOrder.setOut_trade_no(payment.getCode());
+				
+				NutMap map = this.query_order(KEY, wxPayUnifiedOrder);
+				if(!processWechatPaymentResponse(map)){
+					//主动查都查不到的订单，直接删除
+					dao.delete(payment);
+				}
+			}
+		}
+	}
+	
+	//被动通知订单状态
+	public synchronized boolean processWechatPaymentResponse(NutMap map) {
 		String ret_sign = map.getString("sign");
-		String sign = WxPaySign.createSign(API_KEY, map);
+		String sign = WxPaySign.createSign(KEY, map);
 		if(sign.equals(sign)){
 			LOG.debug("sign verified.");
 		}else
 		{
 			String err = String.format("sign verify failed: recv=%s, expect=%s",ret_sign,sign);
 			LOG.errorf(err);
-			return err;
+			return false;
 		}
 		
 		String return_code = map.getString("return_code");
@@ -65,83 +153,78 @@ public class OrderManager {
 		
 		if(	!return_code.equals("SUCCESS") || !result_code.equals("SUCCESS")){
 			LOG.fatal("返回码错误");
-			return null;
+			return false;
 		}
 		
 		//验证订单号
-		String pay_code = map.getString("out_trade_no");
-		Order order = dao.fetch(Order.class, Cnd.where("pay_code", "=", pay_code));
-		if(order==null){
-			LOG.fatalf("支付通知消息找不到对应的订单。 recv pay_code=%s", pay_code);
-			return null;
+		String out_trade_no = map.getString("out_trade_no");
+		Payment payment = dao.fetchLinks(dao.fetch(Payment.class, out_trade_no), "order");
+
+		if(payment==null || payment.getOrder()==null){
+			LOG.fatalf("支付通知消息找不到对应的记录。 recv out_trade_no=%s", out_trade_no);
+			return true;
 		}
 		
 		//验证订单状态
+		Order order = payment.getOrder();
 		if(order.getStatus() != OrderStatus.CREATED.toCode()){
-			LOG.debugf("订单已支付完成，status=%d",order.getStatus());
-			return null;
+			LOG.debugf("订单已支付完成，忽略重复通知。status=%d",order.getStatus());
+			return true;
 		}
 		
 		//验证订单金额
 		int total_fee = map.getInt("total_fee");
 		if(total_fee != order.getTotal_price()){
 			LOG.fatalf("支付通知消息对应的订单金额不一致。 recv=%d expect=%d", total_fee, order.getTotal_price() );
-			return null;
+			return true;
 		}
-
-		//验证用户
+		
+		String trade_state = map.getString("trade_state");
+		String err_code = map.getString("err_code");
+		String err_code_des = map.getString("err_code_des");
 		String openid = map.getString("openid");
-		User user = dao.fetch(User.class,order.getId_user());
-		if(user==null){
-			LOG.debugf("找不到订单对应的用户记录。 id=%d", order.getId_user());
-			return null;
-		}
-		if(!user.getOpenid().equals(openid)){
-			LOG.fatalf("订单归属用户的OpenID不一致。 recv=%s expect=%s", openid, user.getOpenid());
-			return null;
-		}
+		String transaction_id = map.getString("transaction_id");
+		String time_end = map.getString("time_end");
+		String trade_state_desc = map.getString("trade_state_desc");
 		
-		//修改订单状态为：已支付
-		order.setStatus(OrderStatus.PAID.toCode());
-		int count = dao.update(order);
-		if(count!=1){
-			LOG.fatalf("订单状态更新失败 update count=%d", count);
-			return null;
-		}
+		//保存payment支付记录
+		payment.setField(return_code, result_code, trade_state, err_code, err_code_des, openid, total_fee, transaction_id, time_end, trade_state_desc);
+        dao.update(payment);
 		
-		return null;
+        //如果支付成功，修改订单状态为：已支付
+		if(trade_state.equals("SUCCESS")){
+			order.setStatus(OrderStatus.PAID.toCode());
+	        dao.update(order);
+		}
+
+		return true;
 	}
-
 	
-	public NutMap createWechatPayment(String openid, String pay_code, int total_fee, String ip) {
-		// 32位随机字符串
-		RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('A', 'Z').build();
-		String nonce_str = generator.generate(32);
-
-		//获取沙箱密钥
+	public NutMap createWechatPayment(User user, Order order, String ip) {
+		Payment payment = new Payment(order.getId());
+		
 		WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
-		wxPayUnifiedOrder.setMch_id(MCH_ID);
-		wxPayUnifiedOrder.setNonce_str(nonce_str);
-		NutMap map = this.getsignkey(API_KEY, wxPayUnifiedOrder);
-		String sandbox_signkey = map.getString("sandbox_signkey");
-		if(null == sandbox_signkey)
-			return null;
-
-		wxPayUnifiedOrder = new WxPayUnifiedOrder();
 		wxPayUnifiedOrder.setAppid(APP_ID);
 		wxPayUnifiedOrder.setMch_id(MCH_ID);
-		wxPayUnifiedOrder.setNonce_str(nonce_str);
 		wxPayUnifiedOrder.setBody("活力火山健康轻食");
-		wxPayUnifiedOrder.setOut_trade_no(pay_code);
-		wxPayUnifiedOrder.setTotal_fee(total_fee);
+		wxPayUnifiedOrder.setOut_trade_no(payment.getCode());
+		wxPayUnifiedOrder.setTotal_fee(order.getTotal_price());
 		wxPayUnifiedOrder.setSpbill_create_ip(ip);
 		wxPayUnifiedOrder.setNotify_url(NOTIFY_URL);
 		wxPayUnifiedOrder.setTrade_type("JSAPI");
-		wxPayUnifiedOrder.setOpenid(openid);
+		wxPayUnifiedOrder.setOpenid(user.getOpenid());
 
 		//return this.pay_jsapi(API_KEY, wxPayUnifiedOrder);
-		return this.pay_jsapi(sandbox_signkey, wxPayUnifiedOrder);
+		NutMap args = this.pay_jsapi(KEY, wxPayUnifiedOrder);
+		if(null == args){
+			return null;
+		}
+		
+		//生成payment记录
+		dao.insert(payment);
+		return args;
 	}
+	
 	
 	
     /**
@@ -178,9 +261,14 @@ public class OrderManager {
      * @return
      */
     //@Override
-    public NutMap pay_unifiedorder(String key, WxPayUnifiedOrder wxPayUnifiedOrder) {
-    	//String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-    	String url = "https://api.mch.weixin.qq.com/sandboxnew/pay/unifiedorder";
+    public NutMap pay_unifiedorder(String key, WxPayUnifiedOrder wxPayUnifiedOrder) {		
+    	String url;
+    	if(!SANDBOX)
+    		url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+    	else
+    		url = "https://api.mch.weixin.qq.com/sandboxnew/pay/unifiedorder";
+    	
+		wxPayUnifiedOrder.setNonce_str(R.UU32());
     	Map<String, Object> params = Lang.obj2map(wxPayUnifiedOrder);
         return this.postPay(url, key, params);
     }
@@ -193,8 +281,13 @@ public class OrderManager {
      */
     //@Override
     public NutMap getsignkey(String key, WxPayUnifiedOrder wxPayUnifiedOrder) {
-    	//String url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-    	String url = "https://api.mch.weixin.qq.com/sandboxnew/pay/getsignkey";
+    	String url;
+    	if(!SANDBOX)
+    		url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+    	else
+    		url = "https://api.mch.weixin.qq.com/sandboxnew/pay/getsignkey";
+    	
+		wxPayUnifiedOrder.setNonce_str(R.UU32());
     	Map<String, Object> params = Lang.obj2map(wxPayUnifiedOrder);
         return this.postPay(url, key, params);
     }
@@ -224,5 +317,17 @@ public class OrderManager {
         params.put("paySign", sign);
         return params;
     }
-
+    
+    //查询订单
+    public NutMap query_order(String key, WxPayUnifiedOrder wxPayUnifiedOrder) {
+    	String url;
+    	if(!SANDBOX)
+    		url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+    	else
+    		url = "https://api.mch.weixin.qq.com/sandboxnew/pay/orderquery";
+    	
+		wxPayUnifiedOrder.setNonce_str(R.UU32());
+    	Map<String, Object> params = Lang.obj2map(wxPayUnifiedOrder);
+        return this.postPay(url, key, params);
+    }
 }
