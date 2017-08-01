@@ -34,11 +34,15 @@ public class OrderManager extends Thread{
 	private final Log LOG = Logs.getLog(this.getClass());
 
 	//检查间隔
-	private static final int INTERVAL = 5000;
+	private static final int INTERVAL = 5;
+	
+	//支付订单超时
+	private static final int PAYMENT_TIMEOUT = 60;
+	
 	private int tick = 0;
 	private boolean intervalTicked(int elapsed){
 		this.tick += elapsed;
-		if(this.tick >= INTERVAL){
+		if(this.tick >= INTERVAL*1000){
 			this.tick =0;
 			return true;
 		}else{
@@ -96,7 +100,7 @@ public class OrderManager extends Thread{
 	private String NOTIFY_URL;
 	
 	private String KEY;
-	private boolean SANDBOX = true;
+	private boolean SANDBOX = false;
 	
 	//定时主动查询没有任何响应的订单的状态
 	public synchronized void checkPayment(){
@@ -104,7 +108,7 @@ public class OrderManager extends Thread{
 		long now = new Date().getTime()/1000;
 		for(Payment payment : list){
 			long timeout = now - payment.getCreate_time().getTime()/1000;
-			if(timeout>30){
+			if(timeout>=PAYMENT_TIMEOUT){
 				WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
 				wxPayUnifiedOrder.setAppid(APP_ID);
 				wxPayUnifiedOrder.setMch_id(MCH_ID);
