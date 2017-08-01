@@ -242,13 +242,15 @@ public class OrderManager extends Thread{
         String sign = WxPaySign.createSign(key, params);
         params.put("sign", sign);
         Request req = Request.create(url, METHOD.POST);
-        req.setData(Xmls.mapToXml(params));
+        String xml = Xmls.mapToXml(params);
+        LOG.debug(xml);
+        req.setData(xml);
         Response resp = Sender.create(req).send();
         
         //这里微信支付服务器会返回201，不能用isOK=200来判断 
         if (resp.isServerError()) 
             throw new IllegalStateException("postPay, resp code=" + resp.getStatus());
-        String xml = resp.getContent("UTF-8");
+        xml = resp.getContent("UTF-8");
         LOG.debug(xml);
         return Xmls.xmlToMap(xml);
     }
