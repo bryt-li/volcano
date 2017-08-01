@@ -96,7 +96,7 @@ public class OrderManager extends Thread{
 	private String NOTIFY_URL;
 	
 	private String KEY;
-	private boolean SANDBOX = true;
+	private boolean SANDBOX = false;
 	
 	//定时主动查询没有任何响应的订单的状态
 	public synchronized void checkPayment(){
