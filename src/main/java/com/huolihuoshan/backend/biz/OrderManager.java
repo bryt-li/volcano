@@ -127,16 +127,85 @@ public class OrderManager extends Thread{
 				wxPayUnifiedOrder.setOut_trade_no(payment.getCode());
 				
 				NutMap map = this.query_order(KEY, wxPayUnifiedOrder);
-				if(!processWechatPaymentResponse(map)){
-					//主动查都查不到的订单，直接删除
+				if(!processWechatPaymentQueryReturn(map)){
+					//主动查到不成功的订单，就直接删除了
 					dao.delete(payment);
 				}
 			}
 		}
 	}
 	
+	
 	//被动通知订单状态
-	public synchronized boolean processWechatPaymentResponse(NutMap map) {
+	public synchronized boolean processWechatPaymentQueryReturn(NutMap map) {
+		String ret_sign = map.getString("sign");
+		String sign = WxPaySign.createSign(KEY, map);
+		if(sign.equals(sign)){
+			LOG.debug("sign verified.");
+		}else
+		{
+			String err = String.format("sign verify failed: recv=%s, expect=%s",ret_sign,sign);
+			LOG.errorf(err);
+			return false;
+		}
+		
+		String return_code = map.getString("return_code");
+		String result_code = map.getString("result_code");
+		
+		if(	!return_code.equals("SUCCESS") || !result_code.equals("SUCCESS")){
+			LOG.fatal("返回码错误");
+			return false;
+		}
+		
+		//验证订单号
+		String out_trade_no = map.getString("out_trade_no");
+		Payment payment = dao.fetchLinks(dao.fetch(Payment.class, out_trade_no), "order");
+
+		if(payment==null || payment.getOrder()==null){
+			LOG.fatalf("支付通知消息找不到对应的记录。 recv out_trade_no=%s", out_trade_no);
+			return false;
+		}
+		
+		//验证订单状态
+		Order order = payment.getOrder();
+		if(order.getStatus() != OrderStatus.CREATED.toCode()){
+			LOG.debugf("订单已支付完成，忽略重复通知。status=%d",order.getStatus());
+			return false;
+		}
+		
+		//验证订单金额
+		int total_fee = map.getInt("total_fee");
+		if(total_fee != order.getTotal_price()){
+			LOG.fatalf("支付通知消息对应的订单金额不一致。 recv=%d expect=%d", total_fee, order.getTotal_price() );
+			return false;
+		}
+		
+		String trade_state = map.getString("trade_state");
+		String err_code = map.getString("err_code");
+		String err_code_des = map.getString("err_code_des");
+		String openid = map.getString("openid");
+		String transaction_id = map.getString("transaction_id");
+		String time_end = map.getString("time_end");
+		String trade_state_desc = map.getString("trade_state_desc");
+		
+		//保存payment支付记录
+		payment.setField(return_code, result_code, trade_state, err_code, err_code_des, openid, total_fee, transaction_id, time_end, trade_state_desc);
+        dao.update(payment);
+		
+        //如果支付成功，修改订单状态为：已支付
+		if(trade_state.equals("SUCCESS")){
+			order.setStatus(OrderStatus.PAID.toCode());
+	        dao.update(order);
+	        return true;
+		}else
+		{
+			return false;
+		}
+	}
+	
+	
+	//被动通知订单状态
+	public synchronized boolean processWechatPaymentNotification(NutMap map) {
 		String ret_sign = map.getString("sign");
 		String sign = WxPaySign.createSign(KEY, map);
 		if(sign.equals(sign)){
@@ -179,24 +248,21 @@ public class OrderManager extends Thread{
 			return true;
 		}
 		
-		String trade_state = map.getString("trade_state");
-		LOG.debugf("trade_state=%s",trade_state);
 		String err_code = map.getString("err_code");
 		String err_code_des = map.getString("err_code_des");
 		String openid = map.getString("openid");
 		String transaction_id = map.getString("transaction_id");
 		String time_end = map.getString("time_end");
 		String trade_state_desc = map.getString("trade_state_desc");
-		
+		String trade_state = "SUCCESS";
+
 		//保存payment支付记录
 		payment.setField(return_code, result_code, trade_state, err_code, err_code_des, openid, total_fee, transaction_id, time_end, trade_state_desc);
         dao.update(payment);
 		
         //如果支付成功，修改订单状态为：已支付
-		if(trade_state.equals("SUCCESS")){
-			order.setStatus(OrderStatus.PAID.toCode());
-	        dao.update(order);
-		}
+		order.setStatus(OrderStatus.PAID.toCode());
+        dao.update(order);
 
 		return true;
 	}

@@ -144,7 +144,7 @@ public class OrderModule extends BaseModule {
 		NutMap map = Xmls.xmlToMap(content);
 		
 		NutMap params = NutMap.NEW();
-		if(this.orderManager.processWechatPaymentResponse(map)){
+		if(this.orderManager.processWechatPaymentNotification(map)){
 			params.put("return_code", "SUCCESS");
 			params.put("return_msg", "OK");
 		}else{
