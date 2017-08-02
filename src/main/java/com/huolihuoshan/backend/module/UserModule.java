@@ -59,7 +59,7 @@ public class UserModule extends BaseModule{
 			resp = wxLogin.userinfo(userinfo_url, openid, token);
 			if (resp.ok()) {
 				openid = resp.getString("openid");
-				String nickname = resp.getString("nickname");
+				String nickname = filterUtf8mb4(resp.getString("nickname"));
 				String sex = resp.getString("sex");
 				String country = resp.getString("country");
 				String province = resp.getString("province");
@@ -192,6 +192,19 @@ public class UserModule extends BaseModule{
 		return user;
 	}
 
+	public static String filterUtf8mb4(String str) {
+        final int LAST_BMP = 0xFFFF;
+        StringBuilder sb = new StringBuilder(str.length());
+        for (int i = 0; i < str.length(); i++) {
+            int codePoint = str.codePointAt(i);
+            if (codePoint < LAST_BMP) {
+                sb.appendCodePoint(codePoint);
+            } else {
+                i++;
+            }
+        }
+        return sb.toString();
+    }
 	
 	/*
 	//the following is for pure html/js frontend request
