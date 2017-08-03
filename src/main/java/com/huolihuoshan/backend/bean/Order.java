@@ -20,7 +20,7 @@ public class Order {
 	
 	public Order(int max, int id_user,
 			Date date,String time,
-			String order_items, String delivery,
+			String items, String delivery,
 			int items_price, int advance_price, int delivery_price,
 			int total_price, int payment){
 		this.id_user = id_user;
@@ -29,7 +29,7 @@ public class Order {
 		this.status = OrderStatus.CREATED.toCode();
 		this.date = date;
 		this.time = time;
-		this.order_items = order_items;
+		this.items = items;
 		this.delivery = delivery;
 		this.items_price = items_price;
 		this.advance_price = advance_price;
@@ -70,7 +70,7 @@ public class Order {
     
     @Column
     @ColDefine(type=ColType.TEXT)
-    private String order_items;
+    private String items;
 
     @Column
     @ColDefine(type=ColType.TEXT)
@@ -142,12 +142,12 @@ public class Order {
 		this.time = time;
 	}
 
-	public String getOrder_items() {
-		return order_items;
+	public String getItems() {
+		return items;
 	}
 
-	public void setOrder_items(String order_items) {
-		this.order_items = order_items;
+	public void setItems(String items) {
+		this.items = items;
 	}
 
 	public String getDelivery() {

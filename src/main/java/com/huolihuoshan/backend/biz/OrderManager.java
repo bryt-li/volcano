@@ -37,7 +37,7 @@ public class OrderManager extends Thread{
 	private static final int INTERVAL = 5;
 	
 	//支付订单超时
-	private static final int PAYMENT_TIMEOUT = 60;
+	private static final int PAYMENT_TIMEOUT = 120;
 	
 	private int tick = 0;
 	private boolean intervalTicked(int elapsed){
@@ -182,7 +182,7 @@ public class OrderManager extends Thread{
         dao.update(payment);
 		
         //如果支付成功，修改订单状态为：已支付
-		if(trade_state.equals("SUCCESS")){
+		if(null!=trade_state && trade_state.equals("SUCCESS")){
 			order.setStatus(OrderStatus.PAID.toCode());
 	        dao.update(order);
 	        return true;

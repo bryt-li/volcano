@@ -72,7 +72,7 @@ public class OrderModule extends BaseModule {
 	public Object create(
 			@Param("date") String date, 
 			@Param("time") String time, 
-			@Param("order_items") String order_items,
+			@Param("items") String items,
 			@Param("delivery") String delivery, 
 			@Param("items_price") int items_price,
 			@Param("advance_price") int advance_price, 
@@ -94,7 +94,7 @@ public class OrderModule extends BaseModule {
 		int max = sql.getInt(0);
 		max++;
 
-		Order order = new Order(max, me.getId(), dt, time, order_items, delivery, items_price, advance_price,
+		Order order = new Order(max, me.getId(), dt, time, items, delivery, items_price, advance_price,
 				delivery_price, total_price, payment);
 
 		order = dao.insert(order);
