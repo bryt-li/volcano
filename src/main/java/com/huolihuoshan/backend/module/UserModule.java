@@ -127,13 +127,13 @@ public class UserModule extends BaseModule{
 		}
 		
 		boolean add_new = false;
-		Delivery delivery = dao.fetch(Delivery.class, id);
+		Delivery delivery = dao.fetch(Delivery.class, me.getId());
 		if (delivery == null) {
 			delivery = new Delivery();
 			add_new = true;
+			delivery.setId(me.getId());
 		}
 		
-		delivery.setId(me.getId());
 		delivery.setName(name);
 		delivery.setAddress(address);
 		delivery.setCity(city);
