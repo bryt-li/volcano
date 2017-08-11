@@ -25,6 +25,7 @@ import org.nutz.mvc.annotation.Param;
 import com.huolihuoshan.backend.bean.Order;
 import com.huolihuoshan.backend.bean.User;
 import com.huolihuoshan.backend.biz.OrderManager;
+import com.huolihuoshan.backend.biz.UserManager;
 
 @IocBean
 @At("/order")
@@ -34,37 +35,25 @@ public class OrderModule extends BaseModule {
 	
 	@Inject
 	private OrderManager orderManager;
-	
+
 	@At
 	@POST
 	public Object get(@Param("id") int id){
-		User me = this.getMe();
-		if (me == null) {
-			return err(new NutMap().setv("errmsg", "no user signed in"));
-		}
+		Order order = this.orderManager.getOrder(id);
+		if(order==null)
+			return err("no order found");
 		
-		Order order = dao.fetch(Order.class,id);
-		if(order==null){
-			return err(new NutMap().setv("errmsg", "no order found"));
-		}
-
 		return ok(order);
 	}
 	
 	@At
 	@POST
 	public Object list(){
-		User me = this.getMe();
-		if (me == null) {
-			return err(new NutMap().setv("errmsg", "no user signed in"));
+		List<Order> orders = this.orderManager.getOrderList();
+		if(orders==null){
+			return err("no order found");
 		}
-		
-		me = dao.fetchLinks(me,"orders");
-		if(me.getOrders()==null){
-			return err(new NutMap().setv("errmsg", "no order found"));
-		}
-
-		return ok(me.getOrders());
+		return ok(orders);
 	}
 	
 	@At
@@ -79,28 +68,17 @@ public class OrderModule extends BaseModule {
 			@Param("delivery_price") int delivery_price,
 			@Param("total_price") int total_price, 
 			@Param("payment") int payment) throws Exception {
-		User me = this.getMe();
-		if (me == null) {
-			return err(new NutMap().setv("errmsg", "no user signed in"));
-		}
 		
-		//把date从字符串转为Date
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
-	    Date dt = sdf.parse(date); 
-	    
-		// 获得最大ID，用于生成订单号code
-		Sql sql = Sqls.create("SELECT MAX(id) FROM hlhs_Order;");
-		dao.execute(sql);
-		int max = sql.getInt(0);
-		max++;
-
-		Order order = new Order(max, me.getId(), dt, time, items, delivery, items_price, advance_price,
-				delivery_price, total_price, payment);
-
-		order = dao.insert(order);
-		LOG.debugf("Create a new order. id=%d, code=%s", order.getId(), order.getCode());
-
-		return ok(new NutMap().setv("id", order.getId()).setv("code", order.getCode()));
+		int id = this.orderManager.createOrder(
+				date,time,
+				items,delivery,
+				items_price,advance_price,delivery_price,total_price,
+				payment);
+		
+		if(id<0)
+			return err("create order fail");
+		else
+			return ok(new NutMap().setv("id", id));
 	}
 	
 	@At("/pay/wechat/jsapi")
@@ -108,28 +86,15 @@ public class OrderModule extends BaseModule {
 	public Object getWechatPayJsapiArgs(
 			@Param("id") int id,
 			HttpServletRequest request) throws Exception {
-		User me = this.getMe();
-		if (me == null) {
-			return err(new NutMap().setv("errmsg", "no user signed in"));
-		}
-		Order order = dao.fetch(Order.class, id);
-		if (order == null) {
-			return err(new NutMap().setv("errmsg", "no order found"));
-		}
-		
-		// 终端IP地址
-		String ip = getIpAddr(request);
+
+		String ip = this.getIpAddr(request);
 		
 		//创建微信预付款订单
-		NutMap args = this.orderManager.createWechatPayment(me,order,ip);
-		
-		//判断是否创建成功
-		if(args == null){
-			return err(new NutMap().setv("errmsg", "create wechat prepay failed"));			
-		}
-		
-		//返回给客户端JSAPI参数
-		return ok(args);
+		NutMap args = this.orderManager.createWechatPayment(id,ip);
+		if(args==null)
+			return err("create payment failed");
+		else 
+			return ok(args);
 	}
 	
 	//注意：这个支付通知由微信支付平台调用

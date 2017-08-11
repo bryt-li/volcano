@@ -27,13 +27,6 @@ public abstract class BaseModule {
 	/** 注入与属性同名的一个ioc对象 */
 	@Inject
 	protected Dao dao;
-
-	protected User getMe() {
-		Object attr = Mvcs.getHttpSession(true).getAttribute("me");
-		if(attr==null)
-			return null;
-		return (User) attr;
-	}
 	
 	protected String getSavedUrl() {
 		return (String) Mvcs.getHttpSession(true).getAttribute("savedUrl");
@@ -55,8 +48,8 @@ public abstract class BaseModule {
 		return new NutMap().setv("ok", true).setv("payload", data);
 	}
 	
-	protected NutMap err(Object data){
-		return new NutMap().setv("ok", false).setv("payload", data);
+	protected NutMap err(String errmsg){
+		return new NutMap().setv("ok", false).setv("payload", new NutMap().setv("errmsg", errmsg));
 	}
 	
 	protected NutMap ajaxOk(Object data) {

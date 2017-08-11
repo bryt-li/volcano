@@ -1,5 +1,7 @@
 package com.huolihuoshan.backend.biz;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +9,8 @@ import java.util.Map;
 import org.apache.commons.text.RandomStringGenerator;
 import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
+import org.nutz.dao.Sqls;
+import org.nutz.dao.sql.Sql;
 import org.nutz.http.Request;
 import org.nutz.http.Request.METHOD;
 import org.nutz.http.Response;
@@ -83,6 +87,10 @@ public class OrderManager extends Thread{
 	
 	@Inject
 	protected Dao dao;
+	
+	@Inject
+	private UserManager userManager;
+
 	
 	@Inject
 	private WxApi2 wxApi2;
@@ -256,7 +264,16 @@ public class OrderManager extends Thread{
 		return true;
 	}
 	
-	public NutMap createWechatPayment(User user, Order order, String ip) {
+	public NutMap createWechatPayment(int id, String ip) {
+		User me = this.userManager.getMe();
+		if(me==null)
+			return null;
+
+		Order order = dao.fetch(Order.class, id);
+		if (order == null) {
+			return null;
+		}
+						
 		if(SANDBOX){
 			//获取沙箱密钥
 			WxPayUnifiedOrder wxPayUnifiedOrder = new WxPayUnifiedOrder();
@@ -284,7 +301,7 @@ public class OrderManager extends Thread{
 		wxPayUnifiedOrder.setSpbill_create_ip(ip);
 		wxPayUnifiedOrder.setNotify_url(NOTIFY_URL);
 		wxPayUnifiedOrder.setTrade_type("JSAPI");
-		wxPayUnifiedOrder.setOpenid(user.getOpenid());
+		wxPayUnifiedOrder.setOpenid(me.getOpenid());
 
 		NutMap args = this.pay_jsapi(KEY, wxPayUnifiedOrder);
 		if(null == args){
@@ -295,8 +312,6 @@ public class OrderManager extends Thread{
 		dao.insert(payment);
 		return args;
 	}
-	
-	
 	
     /**
      * 微信支付公共POST方法（不带证书）
@@ -403,4 +418,48 @@ public class OrderManager extends Thread{
     	Map<String, Object> params = Lang.obj2map(wxPayUnifiedOrder);
         return this.postPay(url, key, params);
     }
+    
+	public Order getOrder(int id) {
+		User me = this.userManager.getMe();
+		if(me==null){
+			return null;
+		}
+
+		return dao.fetch(Order.class,id);
+	}
+	
+	public List<Order> getOrderList(){
+		User me = this.userManager.getMe();
+		if(me==null)
+			return null;
+
+		me = dao.fetchLinks(me,"orders");
+		return me.getOrders();
+	}
+	
+	
+	public int createOrder(String date, String time, String items, String delivery, int items_price, int advance_price,
+			int delivery_price, int total_price, int payment) throws Exception {
+
+		User me = this.userManager.getMe();
+		if(me==null)
+			return -1;
+
+		//把date从字符串转为Date
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
+	    Date dt = sdf.parse(date); 
+	    
+		// 获得最大ID，用于生成订单号code
+		Sql sql = Sqls.create("SELECT MAX(id) FROM hlhs_Order;");
+		dao.execute(sql);
+		int max = sql.getInt(0);
+		max++;
+
+		Order order = new Order(max, me.getId(), dt, time, items, delivery, items_price, advance_price,
+				delivery_price, total_price, payment);
+
+		order = dao.insert(order);
+		LOG.debugf("Create a new order. id=%d, code=%s", order.getId(), order.getCode());
+		return order.getId();
+	}
 }
