@@ -96,29 +96,6 @@ public class OrderModule extends BaseModule {
 		else 
 			return ok(args);
 	}
-	
-	//注意：这个支付通知由微信支付平台调用
-	//
-	@At("/pay/wechat/notify")
-	@POST
-	public String wechatPayNotify(HttpServletRequest request, HttpServletResponse response) throws Exception{
-		InputStreamReader isr = new InputStreamReader(request.getInputStream(), Charset.forName("UTF-8"));
-		String content = Streams.readAndClose(isr);
-		LOG.debug(content);
-		
-		NutMap map = Xmls.xmlToMap(content);
-		
-		NutMap params = NutMap.NEW();
-		if(this.orderManager.processWechatPaymentNotification(map)){
-			params.put("return_code", "SUCCESS");
-			params.put("return_msg", "OK");
-		}else{
-			params.put("return_code", "FAIL");
-			params.put("return_msg", "ERR");
-		}
-		String xml = Xmls.mapToXml(params);
-		return xml;
-	}
 
 	//返回客户端的IP地址
 	private String getIpAddr(HttpServletRequest request) {

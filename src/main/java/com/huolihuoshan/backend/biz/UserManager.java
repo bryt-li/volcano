@@ -29,20 +29,13 @@ public class UserManager {
 	@Inject("java:$wxLogin.configure($conf,'weixin.')")
 	protected WxLogin wxLogin;
 	
-	@Inject("java:$conf.get('wechat.login.access_token_url')")
-	private String access_token_url;
-
-	@Inject("java:$conf.get('wechat.login.userinfo_url')")
-	private String userinfo_url;
-	
-	
 	public boolean wechatLogin(String code) throws Exception{
-		WxResp resp = wxLogin.access_token(access_token_url, code);
+		WxResp resp = wxLogin.access_token(code);
 		if (resp.ok()) {
 			String openid = resp.getString("openid");
 			String token = resp.getString("access_token");
 
-			resp = wxLogin.userinfo(userinfo_url, openid, token);
+			resp = wxLogin.userinfo(openid, token);
 			if (resp.ok()) {
 				openid = resp.getString("openid");
 				String nickname = filterUtf8mb4(resp.getString("nickname"));

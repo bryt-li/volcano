@@ -18,7 +18,7 @@ public class EntrySetup implements Setup {
 
 	@Inject
 	private OrderManager orderManager;
-
+	
 	
 	public void init(NutConfig conf) {
 		Ioc ioc = conf.getIoc();
@@ -28,7 +28,6 @@ public class EntrySetup implements Setup {
 
 		try {
 			this.orderManager.startup();
-			LOG.debug("Order Manager startup.");
 		} catch (Exception e) {
 			LOG.fatal(e);
 			//throw runtime exception to stop the webapp
@@ -40,7 +39,6 @@ public class EntrySetup implements Setup {
 	public void destroy(NutConfig conf) {
 		try {
 			this.orderManager.shutdown();
-			LOG.debug("Order Manager shutdown.");
 		} catch (Exception e) {
 			LOG.fatal(e);
 			throw new RuntimeException();

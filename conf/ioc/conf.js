@@ -6,8 +6,6 @@ var ioc = {
 			paths : [ 
 			          "custom/misc.properties",
 			          "custom/wechat.properties",
-			          "custom/wechat.login.properties",
-			          "custom/wechat.pay.properties",
 			        ]
 		}
 	}

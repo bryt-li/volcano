@@ -30,7 +30,7 @@ public class UserModule extends BaseModule{
 	@Inject
 	private UserManager userManager;
 
-	@Inject("java:$conf.get('wechat.login.frontend_url')")
+	@Inject("java:$conf.get('hlhs_frontend_url')")
 	private String hlhs_frontend_url;
 	
 	//// this is called by client and redirected by wechat open platform
