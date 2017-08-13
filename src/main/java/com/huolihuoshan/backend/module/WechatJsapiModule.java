@@ -31,4 +31,5 @@ public class WechatJsapiModule {
 		return wxApi2.genJsSDKConfig(dest, jsApiList );
 	}
 	
+	
 }
