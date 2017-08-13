@@ -29,6 +29,9 @@ public class UserManager {
 	@Inject("java:$wxLogin.configure($conf,'weixin.')")
 	protected WxLogin wxLogin;
 	
+	@Inject("java:$conf.get('local_debug_mode')")
+	private Boolean local_debug_mode;
+	
 	public boolean wechatLogin(String code) throws Exception{
 		WxResp resp = wxLogin.access_token(code);
 		if (resp.ok()) {
@@ -73,6 +76,18 @@ public class UserManager {
 	}
 	
 	public User getMe() {
+		//为了本地调试方便，不引用微信登录，直接返回测试用户给前端
+		if(local_debug_mode){
+			try {
+				saveMe("88888888", "HLHS测试号", "1", 
+						"http://img.alicdn.com/tps/TB1ld1GNFXXXXXLapXXXXXXXXXX-200-200.png", 
+						"China", "Hunan", "Changsha");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 		HttpSession session = Mvcs.getHttpSession(false);
 		if(session!=null){
 			Object attr = session.getAttribute("me");

@@ -18,11 +18,17 @@ public class WechatJsapiModule {
 	@Inject
 	private WxApi2 wxApi2;
 
+	@Inject("java:$conf.get('hlhs_frontend_url')")
+	private String hlhs_frontend_url;
+
 	@At
 	@POST
 	public Object cfg(@Param("url") final String url, 
 			@Param(value="jsApiList") final String[] jsApiList){
-		return wxApi2.genJsSDKConfig(url, jsApiList );
+		
+		String dest = String.format("%s%s", hlhs_frontend_url,url);
+
+		return wxApi2.genJsSDKConfig(dest, jsApiList );
 	}
 	
 }
