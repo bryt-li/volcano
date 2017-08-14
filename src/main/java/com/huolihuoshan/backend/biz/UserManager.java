@@ -32,13 +32,14 @@ public class UserManager {
 	
 	@Inject("java:$conf.get('local_debug_mode')")
 	private Boolean local_debug_mode;
-	
+
 	public boolean wechatLogin(String code) throws Exception{
+		LOG.debugf("access_token='%s'", code);
 		WxResp resp = wxLogin.access_token(code);
 		if (resp.ok()) {
 			String openid = resp.getString("openid");
 			String token = resp.getString("access_token");
-
+			LOG.debugf("openid='%s', token='%s'", openid,token);
 			resp = wxLogin.userinfo(openid, token);
 			if (resp.ok()) {
 				openid = resp.getString("openid");
@@ -49,7 +50,7 @@ public class UserManager {
 				String city = resp.getString("city");
 				String headImageUrl = resp.getString("headimgurl");
 
-				User me = saveMe(openid, nickname, sex, 
+				saveMe(openid, nickname, sex, 
 						headImageUrl, 
 						country, province, city);
 				return true;
