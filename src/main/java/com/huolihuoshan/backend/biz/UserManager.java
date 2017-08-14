@@ -29,6 +29,7 @@ public class UserManager {
 	@Inject("java:$wxLogin.configure($conf,'weixin.')")
 	protected WxLogin wxLogin;
 	
+	
 	@Inject("java:$conf.get('local_debug_mode')")
 	private Boolean local_debug_mode;
 	
