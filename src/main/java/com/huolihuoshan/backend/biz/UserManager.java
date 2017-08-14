@@ -34,14 +34,14 @@ public class UserManager {
 	@Inject("java:$conf.get('local_debug_mode')")
 	private Boolean local_debug_mode;
 
-	public boolean wechatLogin(String code) throws Exception{
-		LOG.debugf("access_token='%s'", code);
-		WxResp resp = wxLogin.access_token(code);
+	public boolean wechatLogin(String auth_code) throws Exception{
+		LOG.debugf("auth_code='%s'", auth_code);
+		WxResp resp = this.wxLogin.access_token(auth_code);
 		if (resp.ok()) {
 			String openid = resp.getString("openid");
 			String token = resp.getString("access_token");
 			LOG.debugf("openid='%s', token='%s'", openid,token);
-			resp = wxLogin.userinfo(openid, token);
+			resp = this.wxLogin.userinfo(openid, token);
 			if (resp.ok()) {
 				openid = resp.getString("openid");
 				String nickname = filterUtf8mb4(resp.getString("nickname"));
