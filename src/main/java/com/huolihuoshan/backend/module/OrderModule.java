@@ -81,7 +81,7 @@ public class OrderModule extends BaseModule {
 			return ok(new NutMap().setv("id", id));
 	}
 	
-	@At("/pay/wechat/jsapi")
+	@At
 	@POST
 	public Object getWechatPayJsapiArgs(
 			@Param("id") int id,
@@ -93,7 +93,7 @@ public class OrderModule extends BaseModule {
 		NutMap args = this.orderManager.createWechatPayment(id,ip);
 		if(args==null)
 			return err("create payment failed");
-		else 
+		else
 			return ok(args);
 	}
 

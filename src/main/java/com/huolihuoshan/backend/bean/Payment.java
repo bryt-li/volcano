@@ -9,7 +9,7 @@ import org.nutz.dao.entity.annotation.Name;
 import org.nutz.dao.entity.annotation.One;
 import org.nutz.dao.entity.annotation.Table;
 
-@Table("payment")
+@Table("Payment")
 public class Payment {
 	public Payment(){
 		
