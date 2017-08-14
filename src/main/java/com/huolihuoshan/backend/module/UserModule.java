@@ -42,8 +42,8 @@ public class UserModule extends BaseModule{
 
 		LOG.debugf("enter /wechat/wxlogin: code=%s; state=%s", code, state);
 		String dest = state.replace("777", "/");
-		dest = String.format("%s/?#%s", hlhs_frontend_url,dest);
-		String home = String.format("%s/?#/shop/home", hlhs_frontend_url);
+		dest = String.format("%s/?hlhs#%s", hlhs_frontend_url,dest);
+		String home = String.format("%s/?hlhs#/shop/home", hlhs_frontend_url);
 	
 		if(userManager.wechatLogin(code)){
 			response.sendRedirect(dest);		
