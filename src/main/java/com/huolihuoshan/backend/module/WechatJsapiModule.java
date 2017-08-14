@@ -13,7 +13,7 @@ import org.nutz.weixin.spi.WxApi2;
 @At("/wechat/jsapi")
 @Ok("json")
 @Fail("http:500")
-public class WechatJsapiModule {
+public class WechatJsapiModule extends BaseModule{
 
 	@Inject
 	private WxApi2 wxApi2;
@@ -23,13 +23,11 @@ public class WechatJsapiModule {
 
 	@At
 	@POST
-	public Object cfg(@Param("url") final String url, 
-			@Param(value="jsApiList") final String[] jsApiList){
-		
-		String dest = String.format("%s%s", hlhs_frontend_url,url);
+	public Object cfg(@Param(value="jsApiList") final String jsApiList){
+		LOG.debugf("jsApiList='%s'", jsApiList);
 
-		return wxApi2.genJsSDKConfig(dest, jsApiList );
+		//因为使用了SPA的HashHistory，而微信支付说URL不包含#及其后面部分
+		//所以直接把hlhs_frontend_url传递进去做为URL签名即可
+		return wxApi2.genJsSDKConfig(hlhs_frontend_url, jsApiList.split(",") );
 	}
-	
-	
 }
