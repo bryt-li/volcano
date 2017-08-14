@@ -26,7 +26,8 @@ public class UserManager {
 
 	//configured in nutzwx project, location:
 	//      org/nutz/plugins/weixin/weixin.js
-	@Inject("java:$wxLogin.configure($conf,'weixin.')")
+	//@Inject("java:$wxLogin.configure($conf,'weixin.')")
+	@Inject
 	protected WxLogin wxLogin;
 	
 	
