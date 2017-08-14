@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.eclipse.jetty.util.ajax.JSON;
 import org.nutz.dao.Dao;
 import org.nutz.dao.Sqls;
 import org.nutz.dao.sql.Sql;
@@ -155,13 +156,15 @@ public class OrderManager extends Thread{
 				me.getOpenid(), ip, 
 				payment.getCode(),
 				order.getTotal_price());
-		
+
 		if(null == args){
 			return null;
 		}
 		
 		//生成payment记录
 		dao.insert(payment);
+		
+		LOG.debugf("return args: '%s'", JSON.toString(args));
 		return args;
 	}
     

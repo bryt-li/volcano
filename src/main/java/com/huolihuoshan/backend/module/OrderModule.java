@@ -83,8 +83,7 @@ public class OrderModule extends BaseModule {
 	
 	@At
 	@POST
-	public Object getWechatPayJsapiArgs(
-			@Param("id") int id,
+	public Object getWechatPayJsapiArgs(@Param("id") int id,
 			HttpServletRequest request) throws Exception {
 
 		String ip = this.getIpAddr(request);
