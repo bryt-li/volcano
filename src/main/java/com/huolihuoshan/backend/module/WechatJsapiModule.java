@@ -2,6 +2,7 @@ package com.huolihuoshan.backend.module;
 
 import org.nutz.ioc.loader.annotation.Inject;
 import org.nutz.ioc.loader.annotation.IocBean;
+import org.nutz.lang.util.NutMap;
 import org.nutz.mvc.annotation.At;
 import org.nutz.mvc.annotation.Fail;
 import org.nutz.mvc.annotation.Ok;
@@ -28,6 +29,10 @@ public class WechatJsapiModule extends BaseModule{
 
 		//因为使用了SPA的HashHistory，而微信支付说URL不包含#及其后面部分
 		//所以直接把hlhs_frontend_url传递进去做为URL签名即可
-		return wxApi2.genJsSDKConfig(hlhs_frontend_url, jsApiList.split(",") );
+		NutMap args = wxApi2.genJsSDKConfig(hlhs_frontend_url, jsApiList.split(",") );
+		if(null == args)
+			return err("generate JsSDK Config fail");
+		else
+			return ok(args);
 	}
 }
