@@ -9,6 +9,7 @@ import org.nutz.dao.Dao;
 import org.nutz.dao.QueryResult;
 import org.nutz.dao.pager.Pager;
 import org.nutz.ioc.loader.annotation.Inject;
+import org.nutz.json.Json;
 import org.nutz.lang.util.NutMap;
 import org.nutz.log.Log;
 import org.nutz.log.Logs;
@@ -45,10 +46,12 @@ public abstract class BaseModule {
 	}
 
 	protected NutMap ok(Object data) {
+		LOG.debugf("return ok='%s'", Json.toJson(data));
 		return new NutMap().setv("ok", true).setv("payload", data);
 	}
 	
 	protected NutMap err(String errmsg){
+		LOG.debugf("return err='%s'", errmsg);
 		return new NutMap().setv("ok", false).setv("payload", new NutMap().setv("errmsg", errmsg));
 	}
 	
