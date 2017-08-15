@@ -19,17 +19,15 @@ public class WechatJsapiModule extends BaseModule{
 	@Inject
 	private WxApi2 wxApi2;
 
-	@Inject("java:$conf.get('hlhs_frontend_url')")
-	private String hlhs_frontend_url;
-
 	@At
 	@POST
-	public Object cfg(@Param(value="jsApiList") final String jsApiList){
-		LOG.debugf("jsApiList='%s'", jsApiList);
+	public Object cfg(	@Param("url") final String url, 
+						@Param("jsApiList") final String jsApiList){
+		LOG.debugf("url='%s', jsApiList='%s'", url, jsApiList);
 
-		//因为使用了SPA的HashHistory，而微信支付说URL不包含#及其后面部分
-		//所以直接把hlhs_frontend_url传递进去做为URL签名即可
-		NutMap args = wxApi2.genJsSDKConfig(hlhs_frontend_url, jsApiList.split(",") );
+		//微信支付说URL不包含#及其后面部分
+		String path = url.split("#")[0];
+		NutMap args = wxApi2.genJsSDKConfig(path, jsApiList.split(",") );
 		if(null == args)
 			return err("generate JsSDK Config fail");
 		else
