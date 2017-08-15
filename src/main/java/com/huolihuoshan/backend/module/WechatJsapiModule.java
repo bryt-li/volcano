@@ -25,10 +25,11 @@ public class WechatJsapiModule extends BaseModule{
 	@At
 	@POST
 	public Object cfg(@Param("url") final String url){
-		String jsApiList = "chooseWXPay,onMenuShareTimeline,onMenuShareAppMessage";
+		//微信支付说签名URL不包含#及其后面部分
 		String path = url.split("#")[0];
-		//因为使用了SPA的HashHistory，而微信支付说URL不包含#及其后面部分
-		//所以直接把hlhs_frontend_url传递进去做为URL签名即可
+		LOG.debugf("url='%s'", path);
+		
+		String jsApiList = "chooseWXPay,onMenuShareTimeline,onMenuShareAppMessage";
 		NutMap args = wxApi2.genJsSDKConfig(path, jsApiList.split(",") );
 				
 		if(null == args)
