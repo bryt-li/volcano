@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 import org.nutz.dao.Sqls;
 import org.nutz.dao.sql.Sql;
@@ -212,6 +213,28 @@ public class OrderManager extends Thread{
 		return order.getId();
 	}
 	
+	
+	
+	public List<Order> getAdminOrderList(OrderStatus status) {
+		User me = this.userManager.getMe();
+		if(me==null)
+			return null;
+
+		return dao.query(Order.class, Cnd.where("status","=",status.toCode()));
+	}
+	
+	public boolean updateOrderState(int id, int status) {
+		User me = this.userManager.getMe();
+		if(me==null)
+			return false;
+
+		Order o = dao.fetch(Order.class,id);
+		if(null==o)
+			return false;
+		
+		o.setStatus(status);
+		return dao.update(o)==1;
+	}
 
 /*
  * 这个主动检查的逻辑暂时先不添加，先依赖wechat的notification

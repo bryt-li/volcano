@@ -24,7 +24,7 @@ public class EntrySetup implements Setup {
 		Ioc ioc = conf.getIoc();
 		Dao dao = ioc.get(Dao.class);
 
-		Daos.createTablesInPackage(dao, "com.huolihuoshan.backend.bean", true);
+		Daos.createTablesInPackage(dao, "com.huolihuoshan.backend.bean", false);
 
 		try {
 			this.orderManager.startup();
