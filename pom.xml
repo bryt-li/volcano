@@ -6,7 +6,6 @@
 	<artifactId>hlhs-backend</artifactId>
 	<packaging>war</packaging>
 	<version>0.1</version>
-
 	<name>HLHS Backend Web Application</name>
 	<url>http://www.huolihuoshan.com</url>
 
@@ -91,11 +90,21 @@
 			<artifactId>nutz</artifactId>
 			<version>1.r.63-SNAPSHOT</version>
 		</dependency>
-		<!-- nutzwx in local repository-->
+		<!-- lixin modified nutzwx in local repository-->
 		<dependency>
 		    <groupId>org.nutz</groupId>
 		    <artifactId>nutzwx</artifactId>
 		    <version>1.r.63-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.nutz</groupId>
+			<artifactId>nutz-integration-activiti</artifactId>
+			<version>1.r.63-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.nutz</groupId>
+			<artifactId>nutz-integration-activiti</artifactId>
+			<version>1.r.62</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>

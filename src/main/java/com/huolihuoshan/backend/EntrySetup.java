@@ -1,5 +1,6 @@
 package com.huolihuoshan.backend;
 
+import org.activiti.engine.ProcessEngine;
 import org.nutz.dao.Dao;
 import org.nutz.dao.util.Daos;
 import org.nutz.ioc.Ioc;
@@ -19,7 +20,6 @@ public class EntrySetup implements Setup {
 	@Inject
 	private OrderManager orderManager;
 	
-	
 	public void init(NutConfig conf) {
 		Ioc ioc = conf.getIoc();
 		Dao dao = ioc.get(Dao.class);
@@ -34,6 +34,10 @@ public class EntrySetup implements Setup {
 			//but this behavior depends on container middleware
 			throw new RuntimeException();
 		}
+
+		//activiti
+        ioc.get(ProcessEngine.class);
+
 	}
 
 	public void destroy(NutConfig conf) {

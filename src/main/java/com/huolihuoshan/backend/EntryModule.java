@@ -30,7 +30,7 @@ import com.huolihuoshan.backend.module.BaseModule;
  * 例如@IocBean tx 是TransIocLoader,负责加载内置的事务拦截器定义, 1.b.52开始自带
  */
 @IocBy(type = ComboIocProvider.class,
-args = { "*js", "ioc/", "*anno", "com.huolihuoshan.backend", "*weixin", "*tx" })
+args = { "*js", "ioc/", "*anno", "com.huolihuoshan.backend", "*weixin", "*activiti", "*tx" })
 /*
  * 将自动搜索主模块所在的包（包括子包）下所有的类，如果有类包括了一个以上的入口函数将被认为是模块类
  */
