@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import org.activiti.engine.ProcessEngine;
 import org.nutz.dao.Cnd;
 import org.nutz.dao.Dao;
 import org.nutz.dao.Sqls;
@@ -26,6 +27,10 @@ public class OrderManager extends Thread{
 
 	private final Log LOG = Logs.getLog(this.getClass());
 
+    @Inject
+    protected ProcessEngine processEngine;
+
+    
 	//检查间隔
 	private static final int INTERVAL = 5;
 	
@@ -52,6 +57,10 @@ public class OrderManager extends Thread{
 	}
 	
 	public void startup() throws Exception {
+		String name = processEngine.getName();
+	    String ver = ProcessEngine.VERSION;
+	    LOG.debugf("ProcessEngine [%s] Version: [%s]",name,ver);
+	    
 		this.isRunning = true;
 		this.start();
 		LOG.debug("Order Manager startup.");

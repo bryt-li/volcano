@@ -30,10 +30,6 @@ public class UserManager {
 	@Inject
 	protected WxLogin wxLogin;
 	
-	
-	@Inject("java:$conf.get('local_debug_mode')")
-	private Boolean local_debug_mode;
-
 	public boolean wechatLogin(String auth_code) throws Exception{
 		LOG.debugf("auth_code='%s'", auth_code);
 		WxResp resp = this.wxLogin.access_token(auth_code);
@@ -79,18 +75,6 @@ public class UserManager {
 	}
 	
 	public User getMe() {
-		//为了本地调试方便，不引用微信登录，直接返回测试用户给前端
-		if(local_debug_mode){
-			try {
-				saveMe("88888888", "HLHS测试号", "1", 
-						"http://img.alicdn.com/tps/TB1ld1GNFXXXXXLapXXXXXXXXXX-200-200.png", 
-						"China", "Hunan", "Changsha");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
 		HttpSession session = Mvcs.getHttpSession(false);
 		if(session!=null){
 			Object attr = session.getAttribute("me");

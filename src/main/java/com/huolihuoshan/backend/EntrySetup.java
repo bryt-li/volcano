@@ -1,6 +1,7 @@
 package com.huolihuoshan.backend;
 
 import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.RepositoryService;
 import org.nutz.dao.Dao;
 import org.nutz.dao.util.Daos;
 import org.nutz.ioc.Ioc;
@@ -23,7 +24,19 @@ public class EntrySetup implements Setup {
 	public void init(NutConfig conf) {
 		Ioc ioc = conf.getIoc();
 		Dao dao = ioc.get(Dao.class);
+        
+		//=========================================================================
+        // activiti ioc configuration
+        ioc.get(ProcessEngine.class);
+        RepositoryService repositoryService = ioc.get(RepositoryService.class);
+        // Deploy the process definition
+        repositoryService.createDeployment()
+        .addClasspathResource("model.bpmn20.xml")
+        .deploy();
+        LOG.debug("BPMN process model is deployed.");
+        //====================================================================
 
+        
 		Daos.createTablesInPackage(dao, "com.huolihuoshan.backend.bean", false);
 
 		try {
@@ -34,9 +47,6 @@ public class EntrySetup implements Setup {
 			//but this behavior depends on container middleware
 			throw new RuntimeException();
 		}
-
-		//activiti
-        ioc.get(ProcessEngine.class);
 
 	}
 
