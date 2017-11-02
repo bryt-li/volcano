@@ -24,14 +24,13 @@ modify pom.xml version number
 	mvn tomcat7:undeploy
 	mvn tomcat7:deploy
 
-# Manual deploy
+# Tomcat7-Admin
 
 visit /manager/ to stop and undeploy the app 
 	
 	scp target/volcano.war root@huolihuoshan.com:/var/lib/tomcat7/webapps/
 
 use /manager/ to start the app
-
 
 # Druid
 
