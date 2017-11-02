@@ -11,7 +11,7 @@
 
 
 	<build>
-		<finalName>${project.artifactId}##${project.version}</finalName>
+		<finalName>${project.artifactId}_staging##${project.version}</finalName>
 		<resources>
 			<resource>
 				<directory>bpmn</directory>

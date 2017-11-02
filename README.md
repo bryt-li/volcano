@@ -26,8 +26,13 @@ modify pom.xml version number
 
 # Manual deploy
 
-visit /manager to stop and undeploy the app 
+visit /manager/ to stop and undeploy the app 
 	
 	scp target/backend.war root@huolihuoshan.com:/var/lib/tomcat7/webapps/
 
-use /manager to start the app
+use /manager/ to start the app
+
+
+# Druid
+
+use /volcano/druid/ to view Druid report
