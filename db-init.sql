@@ -12,6 +12,8 @@ default-character-set=utf8
 以避免中文乱码
 */
 
+/*This script require MySQL5.7 or above*/
+
 DROP DATABASE IF EXISTS hlhs;
 CREATE DATABASE hlhs CHARACTER SET utf8;
 
