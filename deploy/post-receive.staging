@@ -1,0 +1,33 @@
+#!/bin/sh
+
+set -e
+
+BUILD_DIR=/home/lixin/deploy/hlhs/backend_staging
+
+echo "Auto deployment activated." 
+
+if [ ! -d $BUILD_DIR ] ; then
+   echo "post-receive: fatal: Build directory does not exist:\"$BUILD_DIR\""
+   exit 1
+fi
+
+# Prepare build env
+
+# Build
+unset GIT_DIR
+
+echo "go into $BUILD_DIR"
+cd $BUILD_DIR
+
+echo "git reset --hard"
+git reset --hard
+
+echo "copy staging deployment configuration file"
+cp -f $BUILD_DIR/deploy/staging/*.properties $BUILD_DIR/conf/custom/
+cp -f $BUILD_DIR/deploy/pom.staging.xml $BUILD_DIR/pom.xml
+
+echo "mvn clean"
+mvn clean
+
+echo "mvn deploy"
+mvn tomcat7:deploy
