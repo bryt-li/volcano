@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.huolihuoshan</groupId>
-	<artifactId>volcano</artifactId>
+	<artifactId>volcano_staging</artifactId>
 	<packaging>war</packaging>
 	<version>0.1.0</version>
 	<name>Volcano - HLHS Backend Java Web Application</name>
@@ -11,7 +11,7 @@
 
 
 	<build>
-		<finalName>${project.artifactId}_staging##${project.version}</finalName>
+		<finalName>${project.artifactId}##${project.version}</finalName>
 		<resources>
 			<resource>
 				<directory>bpmn</directory>
