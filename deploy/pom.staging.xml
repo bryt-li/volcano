@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.huolihuoshan</groupId>
-	<artifactId>hlhs-backend</artifactId>
+	<artifactId>volcano</artifactId>
 	<packaging>war</packaging>
-	<version>0.1</version>
-
-	<name>HLHS Backend Web Application</name>
+	<version>0.1.0</version>
+	<name>Volcano - HLHS Backend Java Web Application</name>
 	<url>http://www.huolihuoshan.com</url>
+
 
 	<build>
 		<finalName>hlhs-backend##${project.version}</finalName>
