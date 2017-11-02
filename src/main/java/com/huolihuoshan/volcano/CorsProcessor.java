@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend;
+package com.huolihuoshan.volcano;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

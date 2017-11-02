@@ -2,7 +2,7 @@
 
 set -e
 
-BUILD_DIR=/home/lixin/deploy/hlhs/backend_prod
+BUILD_DIR=/home/lixin/deploy/hlhs/volcano_prod
 
 echo "Auto deployment activated." 
 

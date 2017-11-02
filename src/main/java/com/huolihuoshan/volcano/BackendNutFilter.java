@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend;
+package com.huolihuoshan.volcano;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -18,7 +18,7 @@ import org.nutz.mvc.NutFilter;
 /**
  * @author lixin
  * 如果访问/druid或/rs下的路径,就无条件跳过NutFilter
- * You can visit: /backend/druid/ to get Druid statistics information.
+ * You can visit: /volcano/druid/ to get Druid statistics information.
  */
 public class BackendNutFilter extends NutFilter {
 	protected Set<String> prefixs = new HashSet<String>();

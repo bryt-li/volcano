@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.biz;
+package com.huolihuoshan.volcano.biz;
 
 import org.nutz.ioc.impl.PropertiesProxy;
 import org.nutz.ioc.loader.annotation.Inject;

@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend;
+package com.huolihuoshan.volcano;
 
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RepositoryService;
@@ -12,7 +12,7 @@ import org.nutz.log.Logs;
 import org.nutz.mvc.NutConfig;
 import org.nutz.mvc.Setup;
 
-import com.huolihuoshan.backend.biz.OrderManager;
+import com.huolihuoshan.volcano.biz.OrderManager;
 
 @IocBean
 public class EntrySetup implements Setup {
@@ -37,7 +37,7 @@ public class EntrySetup implements Setup {
         //====================================================================
 
         
-		Daos.createTablesInPackage(dao, "com.huolihuoshan.backend.bean", false);
+		Daos.createTablesInPackage(dao, "com.huolihuoshan.volcano.bean", false);
 
 		try {
 			this.orderManager.startup();

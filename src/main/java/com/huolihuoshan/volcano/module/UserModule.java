@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.module;
+package com.huolihuoshan.volcano.module;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,9 +17,9 @@ import org.nutz.mvc.annotation.Param;
 import org.nutz.weixin.spi.WxLogin;
 import org.nutz.weixin.spi.WxResp;
 
-import com.huolihuoshan.backend.bean.Delivery;
-import com.huolihuoshan.backend.bean.User;
-import com.huolihuoshan.backend.biz.UserManager;
+import com.huolihuoshan.volcano.bean.Delivery;
+import com.huolihuoshan.volcano.bean.User;
+import com.huolihuoshan.volcano.biz.UserManager;
 
 @IocBean
 @At("/user")
@@ -42,8 +42,8 @@ public class UserModule extends BaseModule{
 
 		LOG.debugf("enter /wechat/wxlogin: code=%s; state=%s", code, state);
 		String dest = state.replace("777", "/");
-		dest = String.format("%s/?hlhs#%s", hlhs_frontend_url,dest);
-		String home = String.format("%s/?hlhs#/shop/home", hlhs_frontend_url);
+		dest = String.format("%s/#%s", hlhs_frontend_url,dest);
+		String home = String.format("%s/#/shop/home", hlhs_frontend_url);
 	
 		if(userManager.wechatLogin(code)){
 			response.sendRedirect(dest);		

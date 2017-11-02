@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.biz;
+package com.huolihuoshan.volcano.biz;
 
 import javax.servlet.http.HttpSession;
 
@@ -12,8 +12,8 @@ import org.nutz.mvc.Mvcs;
 import org.nutz.weixin.spi.WxLogin;
 import org.nutz.weixin.spi.WxResp;
 
-import com.huolihuoshan.backend.bean.Delivery;
-import com.huolihuoshan.backend.bean.User;
+import com.huolihuoshan.volcano.bean.Delivery;
+import com.huolihuoshan.volcano.bean.User;
 
 @IocBean(singleton = true)
 public class UserManager {
@@ -37,6 +37,7 @@ public class UserManager {
 			String openid = resp.getString("openid");
 			String token = resp.getString("access_token");
 			LOG.debugf("openid='%s', token='%s'", openid,token);
+			
 			resp = this.wxLogin.userinfo(openid, token);
 			if (resp.ok()) {
 				openid = resp.getString("openid");

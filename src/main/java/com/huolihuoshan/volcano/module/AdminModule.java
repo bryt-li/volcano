@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.module;
+package com.huolihuoshan.volcano.module;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import org.nutz.mvc.annotation.Ok;
 import org.nutz.mvc.annotation.POST;
 import org.nutz.mvc.annotation.Param;
 
-import com.huolihuoshan.backend.bean.Order;
-import com.huolihuoshan.backend.bean.OrderStatus;
-import com.huolihuoshan.backend.biz.OrderManager;
+import com.huolihuoshan.volcano.bean.Order;
+import com.huolihuoshan.volcano.bean.OrderStatus;
+import com.huolihuoshan.volcano.biz.OrderManager;
 
 @IocBean
 @Ok("json")

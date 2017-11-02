@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.module;
+package com.huolihuoshan.volcano.module;
 
 import java.io.IOException;
 

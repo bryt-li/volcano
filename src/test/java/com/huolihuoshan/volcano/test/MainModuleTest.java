@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.test;
+package com.huolihuoshan.volcano.test;
 
 import java.util.EnumSet;
 
@@ -27,7 +27,7 @@ public class MainModuleTest {
 		// enabled nutz
 		FilterHolder filter = server.addFilter(org.nutz.mvc.NutFilter.class, "/*",
 				EnumSet.of(DispatcherType.FORWARD, DispatcherType.REQUEST));
-		filter.setInitParameter("modules", "cn.jdworks.etl.backend.EntryModule");
+		filter.setInitParameter("modules", "com.huolihuoshan.volcano.EntryModule");
 		server.addServlet(org.nutz.mvc.NutServlet.class, "/");
 		
 		// start

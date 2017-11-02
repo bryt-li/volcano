@@ -28,7 +28,7 @@ modify pom.xml version number
 
 visit /manager/ to stop and undeploy the app 
 	
-	scp target/backend.war root@huolihuoshan.com:/var/lib/tomcat7/webapps/
+	scp target/volcano.war root@huolihuoshan.com:/var/lib/tomcat7/webapps/
 
 use /manager/ to start the app
 

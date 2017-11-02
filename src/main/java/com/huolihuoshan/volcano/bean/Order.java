@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.bean;
+package com.huolihuoshan.volcano.bean;
 
 import java.util.Date;
 

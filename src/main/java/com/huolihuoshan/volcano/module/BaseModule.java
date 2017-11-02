@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.module;
+package com.huolihuoshan.volcano.module;
 
 import java.io.File;
 import java.util.Arrays;
@@ -19,7 +19,7 @@ import org.nutz.mvc.view.HttpStatusView;
 import org.nutz.mvc.view.RawView;
 import org.nutz.mvc.view.ViewWrapper;
 
-import com.huolihuoshan.backend.bean.User;
+import com.huolihuoshan.volcano.bean.User;
 
 public abstract class BaseModule {
 

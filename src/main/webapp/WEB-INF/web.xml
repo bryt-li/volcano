@@ -1,5 +1,5 @@
 <web-app>
-	<display-name>HLHS Backend Web Application</display-name>
+	<display-name>Volcano - HLHS Backend Web Application</display-name>
 
 	<filter>
 		<filter-name>DruidWebStatFilter</filter-name>
@@ -16,10 +16,10 @@
 
 	<filter>
 		<filter-name>nutz</filter-name>
-		<filter-class>com.huolihuoshan.backend.BackendNutFilter</filter-class>
+		<filter-class>com.huolihuoshan.volcano.BackendNutFilter</filter-class>
 		<init-param>
 			<param-name>modules</param-name>
-			<param-value>com.huolihuoshan.backend.EntryModule</param-value>
+			<param-value>com.huolihuoshan.volcano.EntryModule</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>

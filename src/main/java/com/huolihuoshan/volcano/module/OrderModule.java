@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.module;
+package com.huolihuoshan.volcano.module;
 
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -22,10 +22,10 @@ import org.nutz.mvc.annotation.Ok;
 import org.nutz.mvc.annotation.POST;
 import org.nutz.mvc.annotation.Param;
 
-import com.huolihuoshan.backend.bean.Order;
-import com.huolihuoshan.backend.bean.User;
-import com.huolihuoshan.backend.biz.OrderManager;
-import com.huolihuoshan.backend.biz.UserManager;
+import com.huolihuoshan.volcano.bean.Order;
+import com.huolihuoshan.volcano.bean.User;
+import com.huolihuoshan.volcano.biz.OrderManager;
+import com.huolihuoshan.volcano.biz.UserManager;
 
 @IocBean
 @At("/order")

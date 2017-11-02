@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.biz;
+package com.huolihuoshan.volcano.biz;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,10 +17,10 @@ import org.nutz.log.Log;
 import org.nutz.log.Logs;
 import org.nutz.weixin.spi.WxApi2;
 
-import com.huolihuoshan.backend.bean.Order;
-import com.huolihuoshan.backend.bean.OrderStatus;
-import com.huolihuoshan.backend.bean.Payment;
-import com.huolihuoshan.backend.bean.User;
+import com.huolihuoshan.volcano.bean.Order;
+import com.huolihuoshan.volcano.bean.OrderStatus;
+import com.huolihuoshan.volcano.bean.Payment;
+import com.huolihuoshan.volcano.bean.User;
 
 @IocBean(singleton = true)
 public class OrderManager extends Thread{

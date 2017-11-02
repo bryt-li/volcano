@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.bean;
+package com.huolihuoshan.volcano.bean;
 
 public enum OrderStatus {
 	CREATED(0), PAID(1), CONFIRMED(2), DELIVERY(3), FINISHED(4), CANCELLED(5);

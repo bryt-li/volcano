@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend;
+package com.huolihuoshan.volcano;
 
 import org.apache.commons.text.RandomStringGenerator;
 import org.nutz.ioc.loader.annotation.IocBean;
@@ -15,8 +15,8 @@ import org.nutz.mvc.annotation.Ok;
 import org.nutz.mvc.annotation.SetupBy;
 import org.nutz.mvc.ioc.provider.ComboIocProvider;
 
-import com.huolihuoshan.backend.bean.User;
-import com.huolihuoshan.backend.module.BaseModule;
+import com.huolihuoshan.volcano.bean.User;
+import com.huolihuoshan.volcano.module.BaseModule;
 
 /*
 在整个应用启动或者关闭时，你想做一些额外的处理工作，你可以实现一个 org.nutz.mvc.Setup 接口，并将其配置在主模块上
@@ -30,7 +30,7 @@ import com.huolihuoshan.backend.module.BaseModule;
  * 例如@IocBean tx 是TransIocLoader,负责加载内置的事务拦截器定义, 1.b.52开始自带
  */
 @IocBy(type = ComboIocProvider.class,
-args = { "*js", "ioc/", "*anno", "com.huolihuoshan.backend", "*weixin", "*activiti", "*tx" })
+args = { "*js", "ioc/", "*anno", "com.huolihuoshan.volcano", "*weixin", "*activiti", "*tx" })
 /*
  * 将自动搜索主模块所在的包（包括子包）下所有的类，如果有类包括了一个以上的入口函数将被认为是模块类
  */

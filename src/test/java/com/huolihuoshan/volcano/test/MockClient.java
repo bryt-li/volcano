@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.test;
+package com.huolihuoshan.volcano.test;
 
 
 import org.eclipse.jetty.testing.HttpTester;

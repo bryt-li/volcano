@@ -1,4 +1,4 @@
-package com.huolihuoshan.backend.module;
+package com.huolihuoshan.volcano.module;
 
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -16,7 +16,7 @@ import org.nutz.mvc.annotation.Fail;
 import org.nutz.mvc.annotation.Ok;
 import org.nutz.mvc.annotation.POST;
 
-import com.huolihuoshan.backend.biz.OrderManager;
+import com.huolihuoshan.volcano.biz.OrderManager;
 
 @IocBean
 @At("/wechat/pay/notify")
